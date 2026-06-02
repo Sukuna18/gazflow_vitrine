@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { money } from "@/lib/format";
@@ -93,14 +94,14 @@ export default function Storefront({ products, zones }: { products: Product[]; z
         <HeroProductSwipe products={products} />
       </section>
 
-      <section className="benefit-strip">
+      <motion.section className="benefit-strip" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: .6 }}>
         <div><Truck /><span><b>Livraison rapide</b><small>Partout a Dakar</small></span></div>
         <div><ShieldCheck /><span><b>Securite garantie</b><small>Produits verifies</small></span></div>
         <div><Phone /><span><b>Besoin d&apos;aide ?</b><small>Appelez-nous directement</small></span></div>
         <div><PackageCheck /><span><b>Stock disponible</b><small>Commande confirmee vite</small></span></div>
-      </section>
+      </motion.section>
 
-      <section className="section" id="catalogue">
+      <motion.section className="section" id="catalogue" initial={{ opacity: 0, y: 34 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: .72, ease: [0.22, 1, 0.36, 1] }}>
         <div className="section-heading">
           <div><p className="eyebrow orange">Notre catalogue</p><h2>Choisissez votre <em>energie.</em></h2><p>Des produits fiables pour la maison et les professionnels.</p></div>
           <div className="category-tabs">{categories.map((item) => <button className={item === category ? "active" : ""} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div>
@@ -108,18 +109,18 @@ export default function Storefront({ products, zones }: { products: Product[]; z
         <div className="products-grid">
           {visibleProducts.map((product) => <ProductCard key={product.id} product={product} quantity={cart[product.id] ?? 0} setQuantity={(next) => quantity(product.id, next)} />)}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="process-section" id="process">
+      <motion.section className="process-section" id="process" initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: .75, ease: [0.22, 1, 0.36, 1] }}>
         <div className="section-heading centered"><div><p className="eyebrow orange">Simple et rapide</p><h2>Votre bouteille en <em>3 etapes.</em></h2><p>Commandez sans stress. On s&apos;occupe du reste.</p></div></div>
         <div className="process-grid">
           <ProcessCard number="01" title="Choisissez" text="Selectionnez votre bouteille ou vos accessoires."><ChooseIllustration /></ProcessCard>
           <ProcessCard number="02" title="Commandez" text="Indiquez votre adresse et votre telephone."><OrderIllustration /></ProcessCard>
           <ProcessCard number="03" title="Recevez" text="Nous vous livrons rapidement a domicile."><DeliveryIllustration /></ProcessCard>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="zones-section" id="zones">
+      <motion.section className="zones-section" id="zones" initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: .75, ease: [0.22, 1, 0.36, 1] }}>
         <div>
           <p className="eyebrow light">Livraison locale</p>
           <h2>On vient jusqu&apos;a <em>vous.</em></h2>
@@ -127,7 +128,7 @@ export default function Storefront({ products, zones }: { products: Product[]; z
           <div className="zone-list">{zones.map((item) => <div key={item.id}><MapPin size={17} /><b>{item.name}</b><span>{money(item.fee)}</span><small>{item.eta}</small></div>)}</div>
         </div>
         <div className="zone-image"><Image src="/images/gazflow/depot-fleet-yard.png" alt="Depot et flotte Top Energies" fill sizes="(max-width: 900px) 100vw, 45vw" className="object-cover" /><div><Truck size={23} /><b>Une equipe proche de vous</b><span>Preparation locale et livraison suivie</span></div></div>
-      </section>
+      </motion.section>
 
       <Testimonials />
       <PartnersMarquee />
@@ -149,7 +150,7 @@ const reviews = [
 ];
 
 function Testimonials() {
-  return <section className="testimonials-section"><div className="testimonials-heading"><p className="eyebrow orange">Paroles de clients</p><h2>Ils en parlent <em>mieux que nous.</em></h2><p>Des commandes simples, un service local et une equipe joignable.</p></div><div className="reviews-grid">{reviews.map((review, index) => <article className="review-card" key={review.name}><Quote className="review-quote" /><div className="review-stars">{Array.from({ length: 5 }, (_, star) => <Star key={star} fill="currentColor" />)}</div><p>{review.text}</p><div><span>{String(index + 1).padStart(2, "0")}</span><div><b>{review.name}</b><small>{review.role}</small></div></div></article>)}</div></section>;
+  return <motion.section className="testimonials-section" initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: .75, ease: [0.22, 1, 0.36, 1] }}><div className="testimonials-heading"><p className="eyebrow orange">Paroles de clients</p><h2>Ils en parlent <em>mieux que nous.</em></h2><p>Des commandes simples, un service local et une equipe joignable.</p></div><div className="reviews-grid">{reviews.map((review, index) => <motion.article className="review-card" key={review.name} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: .55, delay: index * .1, ease: [0.22, 1, 0.36, 1] }}><Quote className="review-quote" /><div className="review-stars">{Array.from({ length: 5 }, (_, star) => <Star key={star} fill="currentColor" />)}</div><p>{review.text}</p><div><span>{String(index + 1).padStart(2, "0")}</span><div><b>{review.name}</b><small>{review.role}</small></div></div></motion.article>)}</div></motion.section>;
 }
 
 const promoItems = ["Livraison rapide a Dakar", "Bouteilles disponibles", "Paiement a la livraison", "Accessoires gaz", "Service local"];
@@ -170,7 +171,7 @@ function PartnersMarquee() {
 }
 
 function ProcessCard({ number, title, text, children }: { number: string; title: string; text: string; children: React.ReactNode }) {
-  return <article className="process-card"><span>{number}</span><div className="process-illustration">{children}</div><h3>{title}</h3><p>{text}</p></article>;
+  return <motion.article className="process-card" initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-70px" }} transition={{ duration: .58, delay: Number(number) * .1, ease: [0.22, 1, 0.36, 1] }}><span>{number}</span><div className="process-illustration">{children}</div><h3>{title}</h3><p>{text}</p></motion.article>;
 }
 
 function ChooseIllustration() {
@@ -210,6 +211,7 @@ function HeroProductSwipe({ products }: { products: Product[] }) {
 
   return <div className="hero-visual hero-swipe" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onTouchStart={(event) => { setPaused(true); touchStart.current = event.touches[0].clientX; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0].clientX; if (start !== null && Math.abs(start - end) > 42) slide(start > end ? 1 : -1); touchStart.current = null; setPaused(false); }}>
     <div className="hero-blob" />
+    <div className="hero-energy energy-a" /><div className="hero-energy energy-b" /><div className="hero-energy energy-c" />
     <div className="hero-circle circle-one" />
     <div className="hero-circle circle-two" />
     <div className="hero-product-frame"><Image key={product.id} className="hero-product" src={product.image} alt={product.name} width={520} height={620} priority={active === 0} /></div>
@@ -219,12 +221,12 @@ function HeroProductSwipe({ products }: { products: Product[] }) {
 }
 
 function ProductCard({ product, quantity, setQuantity }: { product: Product; quantity: number; setQuantity: (next: number) => void }) {
-  return <article className="product-card">
+  return <motion.article className="product-card" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: .5, ease: [0.22, 1, 0.36, 1] }}>
     {product.featured ? <span className="product-badge">Populaire</span> : null}
     <div className="product-image"><Image src={product.image} alt={product.name} fill sizes="(max-width: 700px) 50vw, 25vw" className="object-contain" /></div>
     <p className="product-category">{product.category}</p><h3>{product.name}</h3><p className="product-desc">{product.description}</p>
     <div className="product-bottom"><div><b>{money(product.price)}</b><small>{product.stock > 0 ? `${product.stock} en stock` : "Rupture de stock"}</small></div>{quantity ? <div className="quantity"><button onClick={() => setQuantity(quantity - 1)}><Minus size={14} /></button><b>{quantity}</b><button disabled={quantity >= product.stock} onClick={() => setQuantity(quantity + 1)}><Plus size={14} /></button></div> : <button disabled={!product.stock} className="add-button" onClick={() => setQuantity(1)}><Plus size={17} /></button>}</div>
-  </article>;
+  </motion.article>;
 }
 
 function CartDrawer({ lines, subtotal, close, quantity, checkout }: { lines: (Product & { quantity: number })[]; subtotal: number; close: () => void; quantity: (id: number, next: number) => void; checkout: () => void }) {
