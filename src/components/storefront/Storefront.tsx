@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { ArrowRight, Check, ChevronDown, Clock3, MapPin, Menu, Minus, PackageCheck, Phone, Plus, ShieldCheck, ShoppingBag, Trash2, Truck, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { money } from "@/lib/format";
 
@@ -19,6 +19,7 @@ export default function Storefront({ products, zones }: { products: Product[]; z
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ reference: string; total: number } | null>(null);
   const [error, setError] = useState("");
+  const [introVisible, setIntroVisible] = useState(true);
   const [form, setForm] = useState({ customerName: "", phone: "", address: "", notes: "", zoneId: zones[0]?.id ?? 0 });
 
   const categories = ["Tous", ...new Set(products.map((product) => product.category))];
@@ -28,6 +29,18 @@ export default function Storefront({ products, zones }: { products: Product[]; z
   const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
   const zone = zones.find((item) => item.id === form.zoneId);
   const total = subtotal + (zone?.fee ?? 0);
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem("top-energies-intro-seen")) {
+      setIntroVisible(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      window.sessionStorage.setItem("top-energies-intro-seen", "true");
+      setIntroVisible(false);
+    }, 2450);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   function quantity(productId: number, next: number) {
     setCart((current) => {
@@ -56,6 +69,7 @@ export default function Storefront({ products, zones }: { products: Product[]; z
 
   return (
     <main>
+      {introVisible ? <div className="site-intro" aria-label="Chargement Top Energies"><div className="intro-orbit orbit-a" /><div className="intro-orbit orbit-b" /><div className="intro-logo"><BrandLogo /><p>Votre energie, livree simplement.</p><span><i /> Preparation de votre experience <i /></span></div><div className="intro-progress"><b /></div></div> : null}
       <div className="announcement"><span>Livraison express a Dakar</span><span>Support client 7j/7</span><span>Paiement a la livraison</span></div>
       <header className="nav-shell">
         <a href="#" className="brand"><BrandLogo compact /></a>
@@ -76,14 +90,7 @@ export default function Storefront({ products, zones }: { products: Product[]; z
           <div className="hero-actions"><a className="primary-button" href="#catalogue">Commander maintenant <ArrowRight size={17} /></a><a className="secondary-button" href="#process">Comment ca marche <ChevronDown size={16} /></a></div>
           <div className="hero-trust"><span><ShieldCheck size={17} /> Produits controles</span><span><Clock3 size={17} /> Livraison rapide</span></div>
         </div>
-        <div className="hero-visual">
-          <div className="hero-blob" />
-          <div className="hero-circle circle-one" />
-          <div className="hero-circle circle-two" />
-          <Image className="hero-bottle" src="/images/topenergies/hero-bottle-transparent.png" alt="Bouteille de gaz Top Energies" width={450} height={620} priority />
-          <div className="floating-card delivery-card"><span><Truck size={18} /></span><div><b>Livraison express</b><small>Chez vous rapidement</small></div></div>
-          <div className="floating-card rating-card"><div className="stars">★★★★★</div><b>4.9 / 5</b><small>Clients satisfaits</small></div>
-        </div>
+        <HeroProductSwipe products={products} />
       </section>
 
       <section className="benefit-strip">
@@ -106,7 +113,9 @@ export default function Storefront({ products, zones }: { products: Product[]; z
       <section className="process-section" id="process">
         <div className="section-heading centered"><div><p className="eyebrow orange">Simple et rapide</p><h2>Votre bouteille en <em>3 etapes.</em></h2><p>Commandez sans stress. On s&apos;occupe du reste.</p></div></div>
         <div className="process-grid">
-          {[["01", "Choisissez", "Selectionnez votre bouteille ou vos accessoires.", ShoppingBag], ["02", "Commandez", "Indiquez votre adresse et votre telephone.", Phone], ["03", "Recevez", "Nous vous livrons rapidement a domicile.", Truck]].map(([number, title, text, Icon]) => <article className="process-card" key={number as string}><span>{number as string}</span><div><Icon size={23} /></div><h3>{title as string}</h3><p>{text as string}</p></article>)}
+          <ProcessCard number="01" title="Choisissez" text="Selectionnez votre bouteille ou vos accessoires."><ChooseIllustration /></ProcessCard>
+          <ProcessCard number="02" title="Commandez" text="Indiquez votre adresse et votre telephone."><OrderIllustration /></ProcessCard>
+          <ProcessCard number="03" title="Recevez" text="Nous vous livrons rapidement a domicile."><DeliveryIllustration /></ProcessCard>
         </div>
       </section>
 
@@ -120,6 +129,10 @@ export default function Storefront({ products, zones }: { products: Product[]; z
         <div className="zone-image"><Image src="/images/gazflow/depot-fleet-yard.png" alt="Depot et flotte Top Energies" fill sizes="(max-width: 900px) 100vw, 45vw" className="object-cover" /><div><Truck size={23} /><b>Une equipe proche de vous</b><span>Preparation locale et livraison suivie</span></div></div>
       </section>
 
+      <Testimonials />
+      <PartnersMarquee />
+      <PromoMarquee />
+
       <section className="cta-section" id="contact"><p className="eyebrow orange">Contact commercial</p><h2>Besoin de gaz <em>maintenant ?</em></h2><p>Commandez directement en ligne ou contactez notre point de vente.</p><div className="commercial-details"><span><MapPin size={16} /> Camberene Rond Point Case Bi</span><a href="tel:+221338355409"><Phone size={16} /> 33 835 54 09</a></div><div><a className="primary-button" href="#catalogue">Voir les produits <ArrowRight size={17} /></a><a className="secondary-button" href="tel:+221338355409"><Phone size={16} /> Appeler le service commercial</a></div></section>
       <footer><a href="#" className="brand"><BrandLogo /></a><p>Votre energie, livree simplement.</p><small>Camberene Rond Point Case Bi · 33 835 54 09 · © {year} Top Energies. Tous droits reserves. <a href="/admin">Administration</a></small></footer>
 
@@ -127,6 +140,82 @@ export default function Storefront({ products, zones }: { products: Product[]; z
       {checkout ? <CheckoutModal form={form} setForm={setForm} zones={zones} total={total} close={() => { setCheckout(false); setResult(null); setError(""); }} submit={submit} sending={sending} error={error} result={result} /> : null}
     </main>
   );
+}
+
+const reviews = [
+  { name: "Awa Ndiaye", role: "Cliente a Camberene", text: "J'ai commande ma bouteille en quelques minutes. L'equipe m'a rappelee rapidement et la livraison etait simple." },
+  { name: "Moussa Diop", role: "Restaurateur", text: "Pour mon activite, la disponibilite compte beaucoup. Je trouve mes bouteilles et mes accessoires au meme endroit." },
+  { name: "Fatou Sarr", role: "Cliente reguliere", text: "Le service est clair, la commande facile et je sais tout de suite combien la livraison va couter." },
+];
+
+function Testimonials() {
+  return <section className="testimonials-section"><div className="testimonials-heading"><p className="eyebrow orange">Paroles de clients</p><h2>Ils en parlent <em>mieux que nous.</em></h2><p>Des commandes simples, un service local et une equipe joignable.</p></div><div className="reviews-grid">{reviews.map((review, index) => <article className="review-card" key={review.name}><Quote className="review-quote" /><div className="review-stars">{Array.from({ length: 5 }, (_, star) => <Star key={star} fill="currentColor" />)}</div><p>{review.text}</p><div><span>{String(index + 1).padStart(2, "0")}</span><div><b>{review.name}</b><small>{review.role}</small></div></div></article>)}</div></section>;
+}
+
+const promoItems = ["Livraison rapide a Dakar", "Bouteilles disponibles", "Paiement a la livraison", "Accessoires gaz", "Service local"];
+function PromoMarquee() {
+  return <section className="promo-marquee" aria-label="Informations commerciales"><div>{[...promoItems, ...promoItems].map((item, index) => <span key={`${item}-${index}`}><i /><b>{item}</b></span>)}</div></section>;
+}
+
+const partners = [
+  { mark: "DKR", name: "Le Dakarois", type: "Restauration" },
+  { mark: "BB", name: "Baobab", type: "Boulangerie" },
+  { mark: "SF", name: "Sunu Foyer", type: "Residence" },
+  { mark: "SC", name: "Sandaga", type: "Commerce" },
+  { mark: "KP", name: "Keur Pro", type: "Professionnels" },
+  { mark: "TF", name: "Teranga Food", type: "Cuisine" },
+];
+function PartnersMarquee() {
+  return <section className="partners-section"><div className="partners-heading"><p className="eyebrow orange">Ils nous font confiance</p><span>Quelques collaborations locales</span></div><div className="partners-window"><div className="partners-track">{[...partners, ...partners].map((partner, index) => <article className="partner-logo" key={`${partner.name}-${index}`}><b>{partner.mark}</b><div><strong>{partner.name}</strong><small>{partner.type}</small></div></article>)}</div></div></section>;
+}
+
+function ProcessCard({ number, title, text, children }: { number: string; title: string; text: string; children: React.ReactNode }) {
+  return <article className="process-card"><span>{number}</span><div className="process-illustration">{children}</div><h3>{title}</h3><p>{text}</p></article>;
+}
+
+function ChooseIllustration() {
+  return <div className="choose-scene"><div className="mini-product"><Image src="/images/topenergies/products/butane-cylinder-classic.png" alt="" fill sizes="130px" className="object-contain" /></div><div className="mini-choice-copy"><i /><i /><b>12 kg</b></div><span><Plus size={16} /></span></div>;
+}
+
+function OrderIllustration() {
+  return <div className="order-scene"><div className="mini-phone"><div /><i /><i /><i /><span><Check size={13} /></span></div><div className="mini-order-pill"><Phone size={13} /><b>Commande validee</b></div></div>;
+}
+
+function DeliveryIllustration() {
+  return <div className="delivery-scene"><div className="delivery-sun" /><div className="delivery-road"><i /><i /><i /><i /></div><div className="mini-truck"><Truck size={28} /></div><div className="mini-home"><Home size={28} /><span><CheckCircle2 size={14} /></span></div></div>;
+}
+
+function HeroProductSwipe({ products }: { products: Product[] }) {
+  const slides = products.filter((product) => product.category === "Bouteilles").slice(0, 4);
+  const touchStart = useRef<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [active, setActive] = useState(0);
+
+  const slide = useCallback((direction: 1 | -1) => {
+    setActive((current) => (current + direction + slides.length) % slides.length);
+  }, [slides.length]);
+
+  useEffect(() => {
+    setActive(0);
+  }, [products.length]);
+
+  useEffect(() => {
+    if (paused || slides.length < 2) return;
+    const timer = window.setInterval(() => slide(1), 3200);
+    return () => window.clearInterval(timer);
+  }, [paused, slide, slides.length]);
+
+  const product = slides[active];
+  if (!product) return null;
+
+  return <div className="hero-visual hero-swipe" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onTouchStart={(event) => { setPaused(true); touchStart.current = event.touches[0].clientX; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0].clientX; if (start !== null && Math.abs(start - end) > 42) slide(start > end ? 1 : -1); touchStart.current = null; setPaused(false); }}>
+    <div className="hero-blob" />
+    <div className="hero-circle circle-one" />
+    <div className="hero-circle circle-two" />
+    <div className="hero-product-frame"><Image key={product.id} className="hero-product" src={product.image} alt={product.name} width={520} height={620} priority={active === 0} /></div>
+    <div className="floating-card delivery-card"><span><Truck size={18} /></span><div><b>Livraison express</b><small>Chez vous rapidement</small></div></div>
+    <div className="floating-card rating-card"><p>{product.category}</p><b>{product.name}</b><small>{money(product.price)}</small></div>
+  </div>;
 }
 
 function ProductCard({ product, quantity, setQuantity }: { product: Product; quantity: number; setQuantity: (next: number) => void }) {
