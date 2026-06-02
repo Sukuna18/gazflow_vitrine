@@ -16,6 +16,16 @@ enum OrderStatus {
   CANCELLED
 }
 
+model Admin {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Product {
   id          Int         @id @default(autoincrement())
   slug        String      @unique
@@ -41,6 +51,23 @@ model DeliveryZone {
   eta       String
   orders    Order[]
   createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id                 Int      @id @default(1)
+  phoneDisplay       String   @default("33 835 54 09")
+  phoneHref          String   @default("+221338355409")
+  address            String   @default("Camberene Rond Point Case Bi")
+  heroEyebrow        String   @default("Disponible maintenant a Dakar")
+  heroTitle          String   @default("Votre gaz.")
+  heroAccent         String   @default("Sans attendre.")
+  heroDescription    String   @default("Bouteilles de gaz, kits et accessoires livres chez vous en toute securite. Une commande simple, un service local, une livraison rapide.")
+  announcementOne    String   @default("Livraison express a Dakar")
+  announcementTwo    String   @default("Support client 7j/7")
+  announcementThree  String   @default("Paiement a la livraison")
+  contactTitle       String   @default("Besoin de gaz maintenant ?")
+  contactDescription String   @default("Commandez directement en ligne ou contactez notre point de vente.")
+  updatedAt          DateTime @updatedAt
 }
 
 model Order {

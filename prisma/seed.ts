@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/lib/password";
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,15 @@ async function main() {
   ] as const) {
     await prisma.deliveryZone.upsert({ where: { name }, update: { fee, eta }, create: { name, fee, eta } });
   }
+
+  await prisma.siteSettings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
+
+  const email = (process.env.ADMIN_EMAIL ?? "admin@topenergies.sn").trim().toLowerCase();
+  await prisma.admin.upsert({
+    where: { email },
+    update: {},
+    create: { name: "Administrateur principal", email, passwordHash: hashPassword(process.env.ADMIN_PASSWORD ?? "Admin25") },
+  });
 }
 
 main()

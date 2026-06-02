@@ -9,9 +9,10 @@ import { money } from "@/lib/format";
 
 type Product = { id: number; name: string; category: string; description: string; price: number; stock: number; weight: string | null; image: string; featured: boolean };
 type Zone = { id: number; name: string; fee: number; eta: string };
+type Settings = { phoneDisplay: string; phoneHref: string; address: string; heroEyebrow: string; heroTitle: string; heroAccent: string; heroDescription: string; announcementOne: string; announcementTwo: string; announcementThree: string; contactTitle: string; contactDescription: string };
 type Cart = Record<number, number>;
 
-export default function Storefront({ products, zones }: { products: Product[]; zones: Zone[] }) {
+export default function Storefront({ products, zones, settings }: { products: Product[]; zones: Zone[]; settings: Settings }) {
   const [cart, setCart] = useState<Cart>({});
   const [cartOpen, setCartOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
@@ -71,12 +72,12 @@ export default function Storefront({ products, zones }: { products: Product[]; z
   return (
     <main>
       {introVisible ? <div className="site-intro" aria-label="Chargement Top Energies"><div className="intro-orbit orbit-a" /><div className="intro-orbit orbit-b" /><div className="intro-logo"><BrandLogo /><p>Votre energie, livree simplement.</p><span><i /> Preparation de votre experience <i /></span></div><div className="intro-progress"><b /></div></div> : null}
-      <div className="announcement"><span>Livraison express a Dakar</span><span>Support client 7j/7</span><span>Paiement a la livraison</span></div>
+      <div className="announcement"><span>{settings.announcementOne}</span><span>{settings.announcementTwo}</span><span>{settings.announcementThree}</span></div>
       <header className="nav-shell">
         <a href="#" className="brand"><BrandLogo compact /></a>
         <nav className="desktop-nav"><a href="#catalogue">Nos produits</a><a href="#process">Comment ca marche</a><a href="#zones">Zones de livraison</a><a href="#contact">Contact</a></nav>
         <div className="nav-actions">
-          <a className="phone-link" href="tel:+221338355409"><Phone size={16} /> 33 835 54 09</a>
+          <a className="phone-link" href={`tel:${settings.phoneHref}`}><Phone size={16} /> {settings.phoneDisplay}</a>
           <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={18} /><span>Panier</span>{count > 0 ? <b>{count}</b> : null}</button>
           <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu"><Menu size={22} /></button>
         </div>
@@ -85,9 +86,9 @@ export default function Storefront({ products, zones }: { products: Product[]; z
 
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow"><span /> Disponible maintenant a Dakar</p>
-          <h1>Votre gaz.<br /><em>Sans attendre.</em></h1>
-          <p className="hero-text">Bouteilles de gaz, kits et accessoires livres chez vous en toute securite. Une commande simple, un service local, une livraison rapide.</p>
+          <p className="eyebrow"><span /> {settings.heroEyebrow}</p>
+          <h1>{settings.heroTitle}<br /><em>{settings.heroAccent}</em></h1>
+          <p className="hero-text">{settings.heroDescription}</p>
           <div className="hero-actions"><a className="primary-button" href="#catalogue">Commander maintenant <ArrowRight size={17} /></a><a className="secondary-button" href="#process">Comment ca marche <ChevronDown size={16} /></a></div>
           <div className="hero-trust"><span><ShieldCheck size={17} /> Produits controles</span><span><Clock3 size={17} /> Livraison rapide</span></div>
         </div>
@@ -134,8 +135,8 @@ export default function Storefront({ products, zones }: { products: Product[]; z
       <PartnersMarquee />
       <PromoMarquee />
 
-      <section className="cta-section" id="contact"><p className="eyebrow orange">Contact commercial</p><h2>Besoin de gaz <em>maintenant ?</em></h2><p>Commandez directement en ligne ou contactez notre point de vente.</p><div className="commercial-details"><span><MapPin size={16} /> Camberene Rond Point Case Bi</span><a href="tel:+221338355409"><Phone size={16} /> 33 835 54 09</a></div><div><a className="primary-button" href="#catalogue">Voir les produits <ArrowRight size={17} /></a><a className="secondary-button" href="tel:+221338355409"><Phone size={16} /> Appeler le service commercial</a></div></section>
-      <footer><a href="#" className="brand"><BrandLogo /></a><p>Votre energie, livree simplement.</p><small>Camberene Rond Point Case Bi · 33 835 54 09 · © {year} Top Energies. Tous droits reserves. <a href="/admin">Administration</a></small></footer>
+      <section className="cta-section" id="contact"><p className="eyebrow orange">Contact commercial</p><h2>{settings.contactTitle}</h2><p>{settings.contactDescription}</p><div className="commercial-details"><span><MapPin size={16} /> {settings.address}</span><a href={`tel:${settings.phoneHref}`}><Phone size={16} /> {settings.phoneDisplay}</a></div><div><a className="primary-button" href="#catalogue">Voir les produits <ArrowRight size={17} /></a><a className="secondary-button" href={`tel:${settings.phoneHref}`}><Phone size={16} /> Appeler le service commercial</a></div></section>
+      <footer><a href="#" className="brand"><BrandLogo /></a><p>Votre energie, livree simplement.</p><small>{settings.address} · {settings.phoneDisplay} · © {year} Top Energies. Tous droits reserves. <a href="/admin">Administration</a></small></footer>
 
       {cartOpen ? <CartDrawer lines={lines} subtotal={subtotal} close={() => setCartOpen(false)} quantity={quantity} checkout={() => { setCartOpen(false); setCheckout(true); }} /> : null}
       {checkout ? <CheckoutModal form={form} setForm={setForm} zones={zones} total={total} close={() => { setCheckout(false); setResult(null); setError(""); }} submit={submit} sending={sending} error={error} result={result} /> : null}
