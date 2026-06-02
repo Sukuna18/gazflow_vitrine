@@ -159,15 +159,12 @@ function PromoMarquee() {
 }
 
 const partners = [
-  { mark: "DKR", name: "Le Dakarois", type: "Restauration" },
-  { mark: "BB", name: "Baobab", type: "Boulangerie" },
-  { mark: "SF", name: "Sunu Foyer", type: "Residence" },
-  { mark: "SC", name: "Sandaga", type: "Commerce" },
-  { mark: "KP", name: "Keur Pro", type: "Professionnels" },
-  { mark: "TF", name: "Teranga Food", type: "Cuisine" },
+  { name: "TotalEnergies", type: "Energie", image: "/images/partners/totalenergies.png", href: "https://totalenergies.com/", theme: "light" },
+  { name: "Terrou-Bi", type: "Hotellerie", image: "/images/partners/terrou-bi.svg", href: "https://terroubi.com/fr/", theme: "dark" },
 ];
 function PartnersMarquee() {
-  return <section className="partners-section"><div className="partners-heading"><p className="eyebrow orange">Ils nous font confiance</p><span>Quelques collaborations locales</span></div><div className="partners-window"><div className="partners-track">{[...partners, ...partners].map((partner, index) => <article className="partner-logo" key={`${partner.name}-${index}`}><b>{partner.mark}</b><div><strong>{partner.name}</strong><small>{partner.type}</small></div></article>)}</div></div></section>;
+  const repeatedPartners = Array.from({ length: 5 }, () => partners).flat();
+  return <section className="partners-section"><div className="partners-heading"><p className="eyebrow orange">Ils nous font confiance</p><span>Partenaires & collaborations</span></div><div className="partners-window"><div className="partners-track">{repeatedPartners.map((partner, index) => <a className={`partner-logo ${partner.theme}`} href={partner.href} target="_blank" rel="noreferrer" key={`${partner.name}-${index}`}><Image src={partner.image} alt={`Logo ${partner.name}`} width={190} height={72} sizes="190px" /><small>{partner.type}</small></a>)}</div></div></section>;
 }
 
 function ProcessCard({ number, title, text, children }: { number: string; title: string; text: string; children: React.ReactNode }) {
