@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PREPARING
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  slug        String      @unique
+  name        String
+  category    String
+  description String
+  price       Int
+  stock       Int         @default(0)
+  weight      String?
+  image       String
+  active      Boolean     @default(true)
+  featured    Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model DeliveryZone {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  fee       Int
+  eta       String
+  orders    Order[]
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id           Int          @id @default(autoincrement())
+  reference    String       @unique
+  customerName String
+  phone        String
+  address      String
+  notes        String?
+  status       OrderStatus  @default(NEW)
+  subtotal     Int
+  deliveryFee  Int
+  total        Int
+  zoneId       Int
+  zone         DeliveryZone @relation(fields: [zoneId], references: [id])
+  items        OrderItem[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  unitPrice Int
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
