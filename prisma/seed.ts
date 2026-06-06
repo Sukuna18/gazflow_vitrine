@@ -36,7 +36,7 @@ async function main() {
   const email = (process.env.ADMIN_EMAIL ?? "admin@topenergies.sn").trim().toLowerCase();
   await prisma.admin.upsert({
     where: { email },
-    update: {},
+    update: { name: "Administrateur principal", active: true, passwordHash: hashPassword(process.env.ADMIN_PASSWORD ?? "Admin25") },
     create: { name: "Administrateur principal", email, passwordHash: hashPassword(process.env.ADMIN_PASSWORD ?? "Admin25") },
   });
 }

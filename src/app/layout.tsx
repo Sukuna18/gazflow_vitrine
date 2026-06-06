@@ -8,6 +8,11 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-display", displ
 export const metadata: Metadata = {
   title: "Top Energies | Votre gaz livre rapidement",
   description: "Commandez vos bouteilles de gaz et accessoires. Livraison rapide a Dakar.",
+  icons: {
+    icon: "/images/topenergies/logo-top-energies.png",
+    shortcut: "/images/topenergies/logo-top-energies.png",
+    apple: "/images/topenergies/logo-top-energies.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

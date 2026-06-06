@@ -11,9 +11,11 @@ type Product = { id: number; name: string; category: string; description: string
 type Zone = { id: number; name: string; fee: number; eta: string };
 type Settings = { phoneDisplay: string; phoneHref: string; address: string; heroEyebrow: string; heroTitle: string; heroAccent: string; heroDescription: string; announcementOne: string; announcementTwo: string; announcementThree: string; contactTitle: string; contactDescription: string };
 type Cart = Record<number, number>;
+const CART_STORAGE_KEY = "top-energies-cart";
 
 export default function Storefront({ products, zones, settings }: { products: Product[]; zones: Zone[]; settings: Settings }) {
   const [cart, setCart] = useState<Cart>({});
+  const [cartReady, setCartReady] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -43,6 +45,25 @@ export default function Storefront({ products, zones, settings }: { products: Pr
     }, 2450);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(CART_STORAGE_KEY) ?? "{}") as Cart;
+      const restored = Object.fromEntries(products.flatMap((product) => {
+        const amount = Number(stored[product.id]);
+        return Number.isInteger(amount) && amount > 0 && product.stock > 0 ? [[product.id, Math.min(amount, product.stock)]] : [];
+      }));
+      setCart(restored);
+    } catch {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+    } finally {
+      setCartReady(true);
+    }
+  }, [products]);
+
+  useEffect(() => {
+    if (cartReady) window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }, [cart, cartReady]);
 
   function quantity(productId: number, next: number) {
     setCart((current) => {
@@ -78,7 +99,7 @@ export default function Storefront({ products, zones, settings }: { products: Pr
         <nav className="desktop-nav"><a href="#catalogue">Nos produits</a><a href="#process">Comment ca marche</a><a href="#zones">Zones de livraison</a><a href="#contact">Contact</a></nav>
         <div className="nav-actions">
           <a className="phone-link" href={`tel:${settings.phoneHref}`}><Phone size={16} /> {settings.phoneDisplay}</a>
-          <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={18} /><span>Panier</span>{count > 0 ? <b>{count}</b> : null}</button>
+          <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={18} /><span>Panier</span>{count > 0 ? <b key={count} className="cart-count">{count}</b> : null}</button>
           <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu"><Menu size={22} /></button>
         </div>
       </header>
