@@ -136,6 +136,76 @@ function orderEmailHtml(data: OrderEmailData): string {
 </html>`;
 }
 
+// ─── Service requests ────────────────────────────────────────────────────────
+
+type ServiceType = "installation" | "assistance" | "entretien";
+
+const serviceLabels: Record<ServiceType, string> = {
+  installation: "Installation de gaz",
+  assistance: "Assistance technique",
+  entretien: "Entretien & maintenance",
+};
+
+export type ServiceEmailData =
+  | { type: "installation"; name: string; phone: string; address: string; logement: string; points: string; date?: string; message?: string }
+  | { type: "assistance"; name: string; phone: string; description: string }
+  | { type: "entretien"; name: string; phone: string; description: string };
+
+function serviceEmailHtml(data: ServiceEmailData): string {
+  const label = serviceLabels[data.type];
+
+  const rows =
+    data.type === "installation"
+      ? `<tr><td style="padding:6px 0;font-size:13px;color:#888;width:160px">Adresse</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.address}</td></tr>
+         <tr><td style="padding:6px 0;font-size:13px;color:#888">Type de logement</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.logement}</td></tr>
+         <tr><td style="padding:6px 0;font-size:13px;color:#888">Points de gaz</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.points}</td></tr>
+         ${data.date ? `<tr><td style="padding:6px 0;font-size:13px;color:#888">Date souhaitee</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.date}</td></tr>` : ""}
+         ${data.message ? `<tr><td style="padding:6px 0;font-size:13px;color:#888">Remarques</td><td style="padding:6px 0;font-size:14px;color:#555;font-style:italic">${data.message}</td></tr>` : ""}`
+      : `<tr><td style="padding:6px 0;font-size:13px;color:#888;width:160px;vertical-align:top">Description</td><td style="padding:6px 0;font-size:14px;color:#555;line-height:1.6;font-style:italic">${data.description}</td></tr>`;
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Demande: ${label}</title></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+    <div style="background:#0f2d52;padding:28px 32px">
+      <div style="color:#7eb8e8;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Nouvelle demande</div>
+      <div style="color:#fff;font-size:20px;font-weight:700">${label}</div>
+    </div>
+    <div style="padding:24px 32px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#888;margin-bottom:14px">Client</div>
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="padding:6px 0;font-size:13px;color:#888;width:160px">Nom</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.name}</td></tr>
+        <tr><td style="padding:6px 0;font-size:13px;color:#888">Telephone</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;font-weight:500">${data.phone}</td></tr>
+        ${rows}
+      </table>
+    </div>
+    <div style="padding:20px 32px;background:#f8f9fa;text-align:center">
+      <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://topenergiesgroup.com"}/admin"
+        style="display:inline-block;background:#0f2d52;color:#fff;font-size:13px;font-weight:600;padding:10px 24px;border-radius:8px;text-decoration:none">
+        Ouvrir le tableau de bord
+      </a>
+      <p style="margin:16px 0 0;font-size:12px;color:#aaa">Top Energies Group · Dakar, Senegal</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+export async function sendServiceRequest(data: ServiceEmailData): Promise<void> {
+  const to = process.env.MAIL_NOTIFY_TO ?? process.env.MAIL_USER;
+  if (!process.env.MAIL_USER || !process.env.MAIL_PASS || !to) return;
+
+  await transporter.sendMail({
+    from: `"Top Energies" <${process.env.MAIL_USER}>`,
+    to,
+    subject: `[${serviceLabels[data.type]}] ${data.name} — ${data.phone}`,
+    html: serviceEmailHtml(data),
+  });
+}
+
+// ─── Order notifications ──────────────────────────────────────────────────────
+
 export async function sendOrderNotification(data: OrderEmailData): Promise<void> {
   const to = process.env.MAIL_NOTIFY_TO ?? process.env.MAIL_USER;
   if (!process.env.MAIL_USER || !process.env.MAIL_PASS || !to) return;

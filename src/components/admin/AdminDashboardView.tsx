@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, PackageCheck, ShoppingBag, Truck } from "lucide-react";
+import { BarChart3, ChevronDown, PackageCheck, ShoppingBag, Truck } from "lucide-react";
 
 import { money } from "@/lib/format";
 import { useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 type Status = "NEW" | "CONFIRMED" | "PREPARING" | "DELIVERING" | "DELIVERED" | "CANCELLED";
@@ -19,11 +18,15 @@ type Order = {
 };
 type Product = { id: number; stock: number };
 
-const labels: Record<Status, string> = {
-  NEW: "Nouvelle", CONFIRMED: "Confirmee", PREPARING: "Preparation",
-  DELIVERING: "En livraison", DELIVERED: "Livree", CANCELLED: "Annulee",
+const statusConfig: Record<Status, { label: string; color: string; bg: string; dot: string }> = {
+  NEW:        { label: "Nouvelle",     color: "#1a5e8c", bg: "#e8f4fd", dot: "#3398c8" },
+  CONFIRMED:  { label: "Confirmee",    color: "#0e6b35", bg: "#e6f7ee", dot: "#2ab869" },
+  PREPARING:  { label: "Preparation",  color: "#7a4200", bg: "#fff4de", dot: "#f59e0b" },
+  DELIVERING: { label: "En livraison", color: "#7a3200", bg: "#fff1e8", dot: "#f97316" },
+  DELIVERED:  { label: "Livree",       color: "#065f46", bg: "#d1fae5", dot: "#10b981" },
+  CANCELLED:  { label: "Annulee",      color: "#9b1c1c", bg: "#fee2e2", dot: "#ef4444" },
 };
-const statuses = Object.keys(labels) as Status[];
+const statuses = Object.keys(statusConfig) as Status[];
 
 export default function AdminDashboardView({
   products, orders,
@@ -48,7 +51,7 @@ export default function AdminDashboardView({
       getData: ({ status }) => ({ status }),
       onSuccess: (order) => {
         setSelected((cur) => cur?.id === order.id ? { ...cur, status: order.status as Status } : cur);
-        toastMessage(`Statut: ${labels[order.status as Status]}.`, "success");
+        toastMessage(`Statut: ${statusConfig[order.status as Status].label}.`, "success");
         router.refresh();
       },
     },
@@ -124,18 +127,59 @@ export function OrdersTable({
           </Button>
           <span>{order.zone.name}</span>
           <b>{money(order.total)}</b>
-          <Select value={order.status} onValueChange={(v) => patch(order.id, v as Status)} disabled={busy}>
-            <SelectTrigger className={`status admin-status-trigger ${order.status.toLowerCase()}`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="admin-select-content">
-              {statuses.map((s) => (
-                <SelectItem className="admin-select-item" key={s} value={s}>{labels[s]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <StatusSelect value={order.status} onChange={(s) => patch(order.id, s)} disabled={busy} />
         </div>
       )) : <p className="admin-empty">Aucune commande pour le moment.</p>}
+    </div>
+  );
+}
+
+function StatusSelect({ value, onChange, disabled }: { value: Status; onChange: (s: Status) => void; disabled: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const cfg = statusConfig[value];
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="status-select">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className="status-pill"
+        style={{ color: cfg.color, background: cfg.bg }}
+      >
+        <span className="status-dot" style={{ background: cfg.dot }} />
+        {cfg.label}
+        <ChevronDown size={11} className={`status-chevron${open ? " open" : ""}`} />
+      </button>
+      {open && (
+        <div className="status-dropdown">
+          {statuses.map((s) => {
+            const c = statusConfig[s];
+            return (
+              <button
+                key={s}
+                type="button"
+                className={`status-option${s === value ? " active" : ""}`}
+                style={{ color: c.color }}
+                onClick={() => { onChange(s); setOpen(false); }}
+              >
+                <span className="status-dot" style={{ background: c.dot }} />
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

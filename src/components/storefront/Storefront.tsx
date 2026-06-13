@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import ServicesSection from "@/components/storefront/Services";
 import { money } from "@/lib/format";
 import { toastMessage } from "@/lib/toast";
 
@@ -120,14 +121,14 @@ export default function Storefront({ products, zones, settings }: { products: Pr
       <div className="announcement"><span>{settings.announcementOne}</span><span>{settings.announcementTwo}</span><span>{settings.announcementThree}</span></div>
       <header className="nav-shell">
         <a href="#" className="brand"><BrandLogo compact /></a>
-        <nav className="desktop-nav"><a href="#catalogue">Nos produits</a><a href="#process">Comment ca marche</a><a href="#zones">Zones de livraison</a><a href="#contact">Contact</a></nav>
+        <nav className="desktop-nav"><a href="#catalogue">Nos produits</a><a href="#process">Comment ca marche</a><a href="#prestations">Prestations</a><a href="#zones">Zones de livraison</a><a href="#contact">Contact</a></nav>
         <div className="nav-actions">
           <a className="phone-link" href={`tel:${settings.phoneHref}`}><Phone size={16} /> {settings.phoneDisplay}</a>
           <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={18} /><span>Panier</span>{count > 0 ? <b key={count} className="cart-count">{count}</b> : null}</button>
           <button className="mobile-toggle" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menu"><Menu size={22} /></button>
         </div>
       </header>
-      {mobileMenu ? <nav className="mobile-nav"><a href="#catalogue" onClick={() => setMobileMenu(false)}>Nos produits</a><a href="#process" onClick={() => setMobileMenu(false)}>Comment ca marche</a><a href="#zones" onClick={() => setMobileMenu(false)}>Livraison</a></nav> : null}
+      {mobileMenu ? <nav className="mobile-nav"><a href="#catalogue" onClick={() => setMobileMenu(false)}>Nos produits</a><a href="#process" onClick={() => setMobileMenu(false)}>Comment ca marche</a><a href="#prestations" onClick={() => setMobileMenu(false)}>Prestations</a><a href="#zones" onClick={() => setMobileMenu(false)}>Livraison</a></nav> : null}
 
       <section className="hero">
         <div className="hero-copy">
@@ -175,6 +176,8 @@ export default function Storefront({ products, zones, settings }: { products: Pr
         </div>
         <div className="zone-image"><Image src="/images/gazflow/depot-fleet-yard.png" alt="Depot et flotte Top Energies" fill sizes="(max-width: 900px) 100vw, 45vw" className="object-cover" /><div><Truck size={23} /><b>Une equipe proche de vous</b><span>Preparation locale et livraison suivie</span></div></div>
       </motion.section>
+
+      <ServicesSection />
 
       <Testimonials />
       <PartnersMarquee />
