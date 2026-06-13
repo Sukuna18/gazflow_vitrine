@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendOrderNotification } from "@/lib/mail";
 
 type Payload = {
   customerName?: string;
@@ -56,6 +57,25 @@ export async function POST(request: Request) {
         },
       });
     });
+
+    // Envoi email en arriere-plan, sans bloquer la reponse client
+    sendOrderNotification({
+      reference: order.reference,
+      customerName: body.customerName!.trim(),
+      phone: body.phone!.trim(),
+      address: body.address!.trim(),
+      notes: body.notes?.trim(),
+      zoneName: zone.name,
+      items: products.map((p) => ({
+        name: p.name,
+        quantity: quantities.get(p.id) ?? 0,
+        unitPrice: p.price,
+      })),
+      subtotal,
+      deliveryFee: zone.fee,
+      total: subtotal + zone.fee,
+    }).catch((err) => console.error("[mail] order notification failed:", err));
+
     return NextResponse.json({ reference: order.reference, total: order.total }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Impossible de creer la commande." }, { status: 409 });

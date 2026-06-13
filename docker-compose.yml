@@ -38,6 +38,11 @@ services:
       UPLOAD_DIR: /app/public/uploads/products
       PUBLIC_UPLOAD_PATH: /uploads/products
       NODE_ENV: production
+      MAIL_HOST: ${MAIL_HOST:-smtp.hostinger.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASS: ${MAIL_PASS}
+      MAIL_NOTIFY_TO: ${MAIL_NOTIFY_TO}
     volumes:
       - media_products:/app/public/uploads/products
     depends_on:
