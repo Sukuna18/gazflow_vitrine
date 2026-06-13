@@ -533,6 +533,7 @@ export default function AdminDashboard({
                   <Label>
                     Stock
                     <Input
+                      key={product.stock}
                       type="number"
                       min="0"
                       defaultValue={product.stock}
