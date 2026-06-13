@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toastMessage } from "@/lib/toast";
 import { adminSchema } from "@/lib/validations/admin";
 import { productSchema } from "@/lib/validations/product";
 import { settingsSchema } from "@/lib/validations/settings";
@@ -50,25 +51,32 @@ export default function AdminDashboard({ initialProducts, initialOrders, initial
     try {
       const response = await fetch(url, { method, headers: { "Content-Type": "application/json" }, ...(body ? { body: JSON.stringify(body) } : {}) });
       const data = await response.json().catch(() => null);
-      if (!response.ok) { setMessage(data?.error ?? "Une erreur est survenue."); return null; }
+      if (!response.ok) {
+        const error = data?.error ?? "Une erreur est survenue.";
+        setMessage(error);
+        toastMessage(error, "error");
+        return null;
+      }
       return data;
     } catch {
-      setMessage("Impossible de joindre le serveur. Reessayez.");
+      const error = "Impossible de joindre le serveur. Reessayez.";
+      setMessage(error);
+      toastMessage(error, "error");
       return null;
     } finally {
       setBusy("");
     }
   }
-  async function productPatch(id: number, data: Partial<Product>) { const updated = await request(`/api/admin/products/${id}`, "PATCH", data); if (updated) setProducts((current) => current.map((product) => product.id === id ? { ...product, ...updated } : product)); }
-  async function productSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); if (!editing) return; const updated = editing.id ? await request(`/api/admin/products/${editing.id}`, "PATCH", editing) : await request("/api/admin/products", "POST", editing); if (!updated) return; setProducts((current) => editing.id ? current.map((product) => product.id === editing.id ? updated : product) : [...current, updated]); setEditing(null); setMessage("Produit enregistre."); }
-  async function productRemove(id: number) { const updated = await request(`/api/admin/products/${id}`, "DELETE"); if (updated) setProducts((current) => current.map((product) => product.id === id ? updated : product)); }
-  async function orderPatch(id: number, status: Status) { const updated = await request(`/api/admin/orders/${id}`, "PATCH", { status }); if (updated) { setOrders((current) => current.map((order) => order.id === id ? { ...order, status: updated.status } : order)); setSelected((current) => current?.id === id ? { ...current, status: updated.status } : current); } }
-  async function zoneSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = zoneSchema.safeParse(zoneDraft); if (!parsed.success) return setMessage(parsed.error.issues[0].message); const zone = await request("/api/admin/zones", "POST", parsed.data); if (zone) { setZones((current) => [...current, zone]); setZoneDraft({ name: "", fee: 0, eta: "" }); } }
-  async function zonePatch(id: number, data: Partial<Zone>) { const zone = await request(`/api/admin/zones/${id}`, "PATCH", data); if (zone) setZones((current) => current.map((item) => item.id === id ? zone : item)); }
-  async function zoneRemove(id: number) { const zone = await request(`/api/admin/zones/${id}`, "DELETE"); if (zone) setZones((current) => current.filter((item) => item.id !== id)); }
-  async function settingsSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = settingsSchema.safeParse(settings); if (!parsed.success) return setMessage(parsed.error.issues[0].message); const updated = await request("/api/admin/settings", "PATCH", parsed.data); if (updated) { setSettings(updated); setMessage("Informations du site enregistrees."); } }
-  async function adminSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = adminSchema.safeParse(adminDraft); if (!parsed.success) return setMessage(parsed.error.issues[0].message); const admin = await request("/api/admin/admins", "POST", parsed.data); if (admin) { setAdmins((current) => [...current, admin]); setAdminDraft({ name: "", email: "", password: "" }); setMessage("Administrateur ajoute."); } }
-  async function adminRemove(id: number) { const result = await request(`/api/admin/admins/${id}`, "DELETE"); if (result) { setAdmins((current) => current.filter((admin) => admin.id !== id)); setMessage("Administrateur supprime."); } }
+  async function productPatch(id: number, data: Partial<Product>) { const updated = await request(`/api/admin/products/${id}`, "PATCH", data); if (updated) { setProducts((current) => current.map((product) => product.id === id ? { ...product, ...updated } : product)); toastMessage(`Produit mis a jour: ${updated.name ?? "Modification enregistree."}`, "success"); } }
+  async function productSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); if (!editing) return; const isEdit = Boolean(editing.id); const updated = editing.id ? await request(`/api/admin/products/${editing.id}`, "PATCH", editing) : await request("/api/admin/products", "POST", editing); if (!updated) return; setProducts((current) => editing.id ? current.map((product) => product.id === editing.id ? updated : product) : [...current, updated]); setEditing(null); setMessage("Produit enregistre."); toastMessage(`${isEdit ? "Produit modifie" : "Produit ajoute"}: ${updated.name}`, "success"); }
+  async function productRemove(id: number) { const updated = await request(`/api/admin/products/${id}`, "DELETE"); if (updated) { setProducts((current) => current.map((product) => product.id === id ? updated : product)); toastMessage(`${updated.name} n'est plus visible en boutique.`, "success"); } }
+  async function orderPatch(id: number, status: Status) { const updated = await request(`/api/admin/orders/${id}`, "PATCH", { status }); if (updated) { setOrders((current) => current.map((order) => order.id === id ? { ...order, status: updated.status } : order)); setSelected((current) => current?.id === id ? { ...current, status: updated.status } : current); toastMessage(`Commande mise a jour. Statut: ${labels[updated.status as Status]}.`, "success"); } }
+  async function zoneSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = zoneSchema.safeParse(zoneDraft); if (!parsed.success) { const error = parsed.error.issues[0].message; setMessage(error); toastMessage(error, "error"); return; } const zone = await request("/api/admin/zones", "POST", parsed.data); if (zone) { setZones((current) => [...current, zone]); setZoneDraft({ name: "", fee: 0, eta: "" }); toastMessage(`${zone.name} est disponible pour la livraison.`, "success"); } }
+  async function zonePatch(id: number, data: Partial<Zone>) { const zone = await request(`/api/admin/zones/${id}`, "PATCH", data); if (zone) { setZones((current) => current.map((item) => item.id === id ? zone : item)); toastMessage(`${zone.name} a ete mise a jour.`, "success"); } }
+  async function zoneRemove(id: number) { const zone = await request(`/api/admin/zones/${id}`, "DELETE"); if (zone) { setZones((current) => current.filter((item) => item.id !== id)); toastMessage("La zone de livraison a ete retiree.", "success"); } }
+  async function settingsSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = settingsSchema.safeParse(settings); if (!parsed.success) { const error = parsed.error.issues[0].message; setMessage(error); toastMessage(error, "error"); return; } const updated = await request("/api/admin/settings", "PATCH", parsed.data); if (updated) { setSettings(updated); setMessage("Informations du site enregistrees."); toastMessage("Les informations commerciales sont enregistrees.", "success"); } }
+  async function adminSave(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); const parsed = adminSchema.safeParse(adminDraft); if (!parsed.success) { const error = parsed.error.issues[0].message; setMessage(error); toastMessage(error, "error"); return; } const admin = await request("/api/admin/admins", "POST", parsed.data); if (admin) { setAdmins((current) => [...current, admin]); setAdminDraft({ name: "", email: "", password: "" }); setMessage("Administrateur ajoute."); toastMessage(`${admin.email} peut maintenant se connecter.`, "success"); } }
+  async function adminRemove(id: number) { const result = await request(`/api/admin/admins/${id}`, "DELETE"); if (result) { setAdmins((current) => current.filter((admin) => admin.id !== id)); setMessage("Administrateur supprime."); toastMessage("Le compte n'a plus acces au tableau de bord.", "success"); } }
 
   return <main className="admin-shell">
     <aside className="admin-side"><Link href="/" className="brand"><BrandLogo compact /></Link><nav><Nav tab={tab} target="dashboard" setTab={setTab} icon={LayoutDashboard}>Vue generale</Nav><Nav tab={tab} target="orders" setTab={setTab} icon={ShoppingBag}>Commandes</Nav><Nav tab={tab} target="products" setTab={setTab} icon={Box}>Produits</Nav><Nav tab={tab} target="zones" setTab={setTab} icon={MapPinned}>Zones</Nav><Nav tab={tab} target="settings" setTab={setTab} icon={Globe2}>Site</Nav><Nav tab={tab} target="admins" setTab={setTab} icon={Users}>Administrateurs</Nav></nav><form action="/api/auth/logout" method="post"><Button type="submit" className="admin-logout"><LogOut /> Deconnexion</Button></form></aside>
@@ -101,12 +109,20 @@ function ProductEditor({ product, setProduct, close, submit, saving }: { product
       const body = new FormData(); body.append("file", file);
       const response = await fetch("/api/admin/uploads/products", { method: "POST", body });
       const data = await response.json().catch(() => null);
-      if (!response.ok) return setUploadError(data?.error ?? "Impossible d'envoyer cette image.");
+      if (!response.ok) {
+        const error = data?.error ?? "Impossible d'envoyer cette image.";
+        setUploadError(error);
+        toastMessage(error, "error");
+        return;
+      }
       setErrors((current) => ({ ...current, image: undefined }));
       setProduct({ ...product, image: data.path });
+      toastMessage("L'image du produit est prete.", "success");
       event.target.value = "";
     } catch {
-      setUploadError("Impossible d'envoyer cette image. Reessayez.");
+      const error = "Impossible d'envoyer cette image. Reessayez.";
+      setUploadError(error);
+      toastMessage(error, "error");
     } finally {
       setUploading(false);
     }
@@ -116,7 +132,9 @@ function ProductEditor({ product, setProduct, close, submit, saving }: { product
     const result = productSchema.safeParse(product);
     if (result.success) { setErrors({}); return submit(event); }
     event.preventDefault();
-    setErrors(Object.fromEntries(Object.entries(result.error.flatten().fieldErrors).map(([key, messages]) => [key, messages?.[0]])));
+    const nextErrors = Object.fromEntries(Object.entries(result.error.flatten().fieldErrors).map(([key, messages]) => [key, messages?.[0]]));
+    setErrors(nextErrors);
+    toastMessage(result.error.issues[0].message, "error");
   }
 
   return <div className="admin-order-modal"><form className="product-editor" onSubmit={validate}><Button type="button" variant="ghost" size="icon" className="modal-x" onClick={close}><X /></Button><p>{product.id ? "Modifier le produit" : "Nouveau produit"}</p><h2>{product.name || "Produit boutique"}</h2><Field label="Nom" error={errors.name} value={product.name ?? ""} set={(value) => setProduct({ ...product, name: value })} /><Field label="Slug unique" error={errors.slug} value={product.slug ?? ""} set={(value) => setProduct({ ...product, slug: value })} /><Field label="Categorie" error={errors.category} value={product.category ?? ""} set={(value) => setProduct({ ...product, category: value })} /><Field label="Poids" value={product.weight ?? ""} set={(value) => setProduct({ ...product, weight: value })} /><Label className="admin-form-field">Prix FCFA<Input aria-invalid={Boolean(errors.price)} type="number" min="0" value={product.price ?? 0} onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })} />{errors.price ? <em>{errors.price}</em> : null}</Label><Label className="admin-form-field">Stock<Input aria-invalid={Boolean(errors.stock)} type="number" min="0" value={product.stock ?? 0} onChange={(e) => setProduct({ ...product, stock: Number(e.target.value) })} />{errors.stock ? <em>{errors.stock}</em> : null}</Label><div className="product-uploader wide-field">{product.image ? <div className="upload-preview"><Image src={product.image} alt="" fill sizes="72px" className="object-contain" /></div> : <span className="upload-placeholder"><ImageUp /></span>}<div><b>Image du produit</b><small>JPG, PNG ou WEBP · 5 Mo maximum</small><Label className="upload-trigger">{uploading ? <LoaderCircle className="spin" /> : <ImageUp />}{uploading ? "Envoi..." : product.image ? "Remplacer l'image" : "Choisir une image"}<Input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload} disabled={uploading || saving} /></Label>{uploadError || errors.image ? <em>{uploadError || errors.image}</em> : null}</div></div><Field label="Description" error={errors.description} value={product.description ?? ""} set={(value) => setProduct({ ...product, description: value })} wide area /><div className="product-options wide-field"><Label><Checkbox className="admin-checkbox" checked={product.featured ?? false} onCheckedChange={(checked) => setProduct({ ...product, featured: checked === true })} /><span><b>Populaire</b><small>Mettre le produit en avant</small></span></Label><Label><Checkbox className="admin-checkbox" checked={product.active ?? true} onCheckedChange={(checked) => setProduct({ ...product, active: checked === true })} /><span><b>Visible</b><small>Afficher dans la boutique</small></span></Label></div><div className="product-editor-actions"><Button type="submit" disabled={uploading || saving} className="product-save-button">{saving ? "Enregistrement..." : "Enregistrer le produit"}</Button></div></form></div>;

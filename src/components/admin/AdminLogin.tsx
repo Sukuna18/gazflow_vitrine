@@ -8,6 +8,7 @@ import BrandLogo from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toastMessage } from "@/lib/toast";
 import { loginSchema } from "@/lib/validations/login";
 
 export default function AdminLogin() {
@@ -20,11 +21,21 @@ export default function AdminLogin() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const result = loginSchema.safeParse({ email, password });
-    if (!result.success) return setError(result.error.issues[0].message);
+    if (!result.success) {
+      const message = result.error.issues[0].message;
+      setError(message);
+      toastMessage(message, "error");
+      return;
+    }
     setSending(true);
     const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(result.data) });
     setSending(false);
-    if (!response.ok) return setError("Email ou mot de passe incorrect.");
+    if (!response.ok) {
+      setError("Email ou mot de passe incorrect.");
+      toastMessage("Email ou mot de passe incorrect.", "error");
+      return;
+    }
+    toastMessage("Connexion reussie. Bienvenue dans l'espace administrateur.", "success");
     router.push("/admin");
     router.refresh();
   }

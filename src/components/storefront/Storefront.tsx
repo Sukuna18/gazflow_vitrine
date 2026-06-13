@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { money } from "@/lib/format";
+import { toastMessage } from "@/lib/toast";
 
 type Product = { id: number; name: string; category: string; description: string; price: number; stock: number; weight: string | null; image: string; featured: boolean };
 type Zone = { id: number; name: string; fee: number; eta: string };
@@ -66,6 +67,8 @@ export default function Storefront({ products, zones, settings }: { products: Pr
   }, [cart, cartReady]);
 
   function quantity(productId: number, next: number) {
+    const product = products.find((item) => item.id === productId);
+    const currentAmount = cart[productId] ?? 0;
     setCart((current) => {
       if (next <= 0) {
         const updated = { ...current };
@@ -74,18 +77,39 @@ export default function Storefront({ products, zones, settings }: { products: Pr
       }
       return { ...current, [productId]: next };
     });
+    if (!product) return;
+    if (next <= 0 && currentAmount > 0) {
+      toastMessage(`${product.name} a ete retire du panier.`, "success");
+    } else if (currentAmount === 0 && next > 0) {
+      toastMessage(`${product.name} est dans votre panier.`, "success");
+    } else if (currentAmount !== next && next > 0) {
+      toastMessage(`${product.name}: ${next} article${next > 1 ? "s" : ""}.`, "success");
+    }
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
     setError("");
-    const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, items: lines.map((line) => ({ productId: line.id, quantity: line.quantity })) }) });
-    const data = await response.json();
-    setSending(false);
-    if (!response.ok) return setError(data.error ?? "Impossible de valider la commande.");
-    setResult(data);
-    setCart({});
+    try {
+      const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, items: lines.map((line) => ({ productId: line.id, quantity: line.quantity })) }) });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = data?.error ?? "Impossible de valider la commande.";
+        setError(message);
+        toastMessage(message, "error");
+        return;
+      }
+      setResult(data);
+      setCart({});
+      toastMessage(`Commande confirmee. Reference ${data.reference}.`, "success");
+    } catch {
+      const message = "Impossible de joindre le serveur. Reessayez.";
+      setError(message);
+      toastMessage(message, "error");
+    } finally {
+      setSending(false);
+    }
   }
 
   const year = useMemo(() => new Date().getFullYear(), []);
