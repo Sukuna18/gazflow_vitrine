@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const [products, zones, settings] = await Promise.all([
-    prisma.product.findMany({ where: { active: true }, orderBy: [{ featured: "desc" }, { sortOrder: "asc" }] }),
+    prisma.product.findMany({ where: { active: true }, orderBy: [{ featured: "desc" }, { id: "desc" }] }),
     prisma.deliveryZone.findMany({ orderBy: { fee: "asc" } }),
     prisma.siteSettings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } }),
   ]);

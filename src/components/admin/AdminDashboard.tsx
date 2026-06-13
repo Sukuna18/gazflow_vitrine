@@ -504,6 +504,7 @@ export default function AdminDashboard({
                       fill
                       className="object-contain"
                       sizes="60px"
+                      unoptimized
                     />
                   </div>
                   <div>

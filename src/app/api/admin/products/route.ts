@@ -7,7 +7,7 @@ export async function GET() {
   if (!(await isAdmin()))
     return NextResponse.json({ error: "Non autorise." }, { status: 401 });
   return NextResponse.json(
-    await prisma.product.findMany({ orderBy: { sortOrder: "asc" } }),
+    await prisma.product.findMany({ orderBy: { id: "desc" } }),
   );
 }
 
