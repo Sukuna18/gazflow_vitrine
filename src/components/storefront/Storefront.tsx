@@ -158,6 +158,8 @@ export default function Storefront({ products, zones, settings }: { products: Pr
         </div>
       </motion.section>
 
+      <ServicesSection />
+
       <motion.section className="process-section" id="process" initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: .75, ease: [0.22, 1, 0.36, 1] }}>
         <div className="section-heading centered"><div><p className="eyebrow orange">Simple et rapide</p><h2>Votre bouteille en <em>3 etapes.</em></h2><p>Commandez sans stress. On s&apos;occupe du reste.</p></div></div>
         <div className="process-grid">
@@ -176,8 +178,6 @@ export default function Storefront({ products, zones, settings }: { products: Pr
         </div>
         <div className="zone-image"><Image src="/images/gazflow/depot-fleet-yard.png" alt="Depot et flotte Top Energies" fill sizes="(max-width: 900px) 100vw, 45vw" className="object-cover" /><div><Truck size={23} /><b>Une equipe proche de vous</b><span>Preparation locale et livraison suivie</span></div></div>
       </motion.section>
-
-      <ServicesSection />
 
       <Testimonials />
       <PartnersMarquee />
