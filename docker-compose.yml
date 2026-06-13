@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gazflow_vitrine_db}
+      POSTGRES_USER: ${POSTGRES_USER:-gazflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gazflow} -d ${POSTGRES_DB:-gazflow_vitrine_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    profiles: ["setup"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-gazflow}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-gazflow_vitrine_db}?schema=public
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "pnpm prisma db push && pnpm db:seed"
+
+  frontend:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-gazflow}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-gazflow_vitrine_db}?schema=public
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+      UPLOAD_DIR: /app/public/uploads/products
+      PUBLIC_UPLOAD_PATH: /uploads/products
+      NODE_ENV: production
+    volumes:
+      - media_products:/app/public/uploads/products
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SERVER_NAME: ${SERVER_NAME:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
+volumes:
+  postgres_data:
+  media_products:
+  caddy_data:
+  caddy_config:
