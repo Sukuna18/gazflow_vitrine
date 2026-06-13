@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useForm,
   type FieldPath,
@@ -1018,6 +1018,8 @@ function ProductEditor({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [previewImage, setPreviewImage] = useState(product.image ?? "");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const blobUrl = useRef("");
   const form = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: productFormDefaults(product),
@@ -1025,8 +1027,15 @@ function ProductEditor({
   const watchedName = form.watch("name");
 
   useEffect(() => {
+    if (blobUrl.current) URL.revokeObjectURL(blobUrl.current);
+    blobUrl.current = "";
+    setPendingFile(null);
     setPreviewImage(product.image ?? "");
   }, [product.id, product.image]);
+
+  useEffect(() => {
+    return () => { if (blobUrl.current) URL.revokeObjectURL(blobUrl.current); };
+  }, []);
 
   function patchProduct<TName extends keyof ProductFormInput>(
     name: TName,
@@ -1035,41 +1044,49 @@ function ProductEditor({
     setProduct({ ...product, [name]: value });
   }
 
-  async function upload(event: React.ChangeEvent<HTMLInputElement>) {
+  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    setUploading(true);
+    if (blobUrl.current) URL.revokeObjectURL(blobUrl.current);
+    blobUrl.current = URL.createObjectURL(file);
+    setPendingFile(file);
+    setPreviewImage(blobUrl.current);
+    form.setValue("image", "pending", { shouldValidate: true });
     setUploadError("");
-    const localPreview = URL.createObjectURL(file);
-    setPreviewImage(localPreview);
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/api/admin/uploads/products", {
-        method: "POST",
-        body,
-      });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) {
-        const error = data?.error ?? "Impossible d'envoyer cette image.";
+    event.target.value = "";
+  }
+
+  async function handleSubmit(values: ProductFormValues) {
+    let imagePath = values.image;
+    if (pendingFile) {
+      setUploading(true);
+      setUploadError("");
+      try {
+        const formData = new FormData();
+        formData.append("file", pendingFile);
+        const response = await fetch("/api/admin/uploads/products", { method: "POST", body: formData });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          const error = data?.error ?? "Impossible d'envoyer cette image.";
+          setUploadError(error);
+          toastMessage(error, "error");
+          return;
+        }
+        URL.revokeObjectURL(blobUrl.current);
+        blobUrl.current = "";
+        imagePath = data.path;
+        setPreviewImage(data.path);
+        setPendingFile(null);
+      } catch {
+        const error = "Impossible d'envoyer cette image. Reessayez.";
         setUploadError(error);
         toastMessage(error, "error");
         return;
+      } finally {
+        setUploading(false);
       }
-      form.setValue("image", data.path, { shouldValidate: true });
-      setProduct({ ...product, image: data.path });
-      setPreviewImage(data.path);
-      toastMessage("L'image du produit est prete.", "success");
-      event.target.value = "";
-    } catch {
-      const error = "Impossible d'envoyer cette image. Reessayez.";
-      setUploadError(error);
-      setPreviewImage(product.image ?? "");
-      toastMessage(error, "error");
-    } finally {
-      URL.revokeObjectURL(localPreview);
-      setUploading(false);
     }
+    await submit({ ...values, image: imagePath });
   }
 
   return (
@@ -1077,7 +1094,7 @@ function ProductEditor({
       <Form {...form}>
         <form
           className="product-editor"
-          onSubmit={form.handleSubmit(submit, (invalid) => {
+          onSubmit={form.handleSubmit(handleSubmit, (invalid) => {
             const firstError = Object.values(invalid)[0]?.message;
             if (firstError) toastMessage(String(firstError), "error");
           })}
@@ -1253,14 +1270,16 @@ function ProductEditor({
                       <ImageUp />
                     )}
                     {uploading
-                      ? "Envoi..."
-                      : product.image
-                        ? "Remplacer l'image"
-                        : "Choisir une image"}
+                      ? "Envoi en cours..."
+                      : pendingFile
+                        ? "Image selectionnee"
+                        : product.image
+                          ? "Remplacer l'image"
+                          : "Choisir une image"}
                     <Input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
-                      onChange={upload}
+                      onChange={onFileChange}
                       disabled={uploading || saving}
                     />
                   </Label>
@@ -1350,7 +1369,7 @@ function ProductEditor({
               disabled={uploading || saving}
               className="product-save-button"
             >
-              {saving ? "Enregistrement..." : "Enregistrer le produit"}
+              {uploading ? "Envoi de l'image..." : saving ? "Enregistrement..." : "Enregistrer le produit"}
             </Button>
           </div>
         </form>
