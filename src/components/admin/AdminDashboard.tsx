@@ -175,6 +175,19 @@ export default function AdminDashboard({
   const settings = initialSettings;
   const admins = initialAdmins;
   const [tab, setTab] = useState<Tab>("dashboard");
+
+  const validTabs: Tab[] = ["dashboard", "orders", "products", "zones", "settings", "admins"];
+  useEffect(() => {
+    const hash = window.location.hash.slice(1) as Tab;
+    if (validTabs.includes(hash)) setTab(hash);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function changeTab(newTab: Tab) {
+    setTab(newTab);
+    window.history.replaceState(null, "", `#${newTab}`);
+  }
+
   const [selected, setSelected] = useState<Order | null>(null);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [message, setMessage] = useState("");
@@ -402,24 +415,24 @@ export default function AdminDashboard({
           <Nav
             tab={tab}
             target="dashboard"
-            setTab={setTab}
+            setTab={changeTab}
             icon={LayoutDashboard}
           >
             Vue generale
           </Nav>
-          <Nav tab={tab} target="orders" setTab={setTab} icon={ShoppingBag}>
+          <Nav tab={tab} target="orders" setTab={changeTab} icon={ShoppingBag}>
             Commandes
           </Nav>
-          <Nav tab={tab} target="products" setTab={setTab} icon={Box}>
+          <Nav tab={tab} target="products" setTab={changeTab} icon={Box}>
             Produits
           </Nav>
-          <Nav tab={tab} target="zones" setTab={setTab} icon={MapPinned}>
+          <Nav tab={tab} target="zones" setTab={changeTab} icon={MapPinned}>
             Zones
           </Nav>
-          <Nav tab={tab} target="settings" setTab={setTab} icon={Globe2}>
+          <Nav tab={tab} target="settings" setTab={changeTab} icon={Globe2}>
             Site
           </Nav>
-          <Nav tab={tab} target="admins" setTab={setTab} icon={Users}>
+          <Nav tab={tab} target="admins" setTab={changeTab} icon={Users}>
             Administrateurs
           </Nav>
         </nav>

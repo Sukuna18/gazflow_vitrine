@@ -1,14 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LockKeyhole } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Flame, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import BrandLogo from "@/components/BrandLogo";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -27,13 +27,13 @@ type LoginResponse = { ok: boolean };
 
 export default function AdminLogin() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
+
   const loginMutation = useMutationApi<LoginResponse, LoginFormValues>(
     "/api/auth/login",
     "POST",
@@ -56,72 +56,128 @@ export default function AdminLogin() {
 
   return (
     <main className="admin-login">
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))}
-          className="login-card"
-        >
-          <Link href="/" className="brand">
-            <BrandLogo />
-          </Link>
+      <div className="login-left-panel">
+        <div className="login-bg-ring ring-1" />
+        <div className="login-bg-ring ring-2" />
+        <div className="login-bg-ring ring-3" />
 
-          <div className="login-icon">
-            <LockKeyhole />
+        <div className="login-left-header">
+          <BrandLogo />
+        </div>
+
+        <div className="login-left-content">
+          <div className="login-left-badge">
+            <ShieldCheck />
+            <span>Acces securise</span>
           </div>
+          <h2 className="login-left-title">
+            Pilotez votre activite en toute serenite.
+          </h2>
+          <p className="login-left-desc">
+            Gerez vos commandes, votre catalogue produit et vos zones de
+            livraison depuis un espace centralise.
+          </p>
+        </div>
 
-          <p>Administration Top Energies</p>
-          <h1>Pilotez vos commandes.</h1>
+        <div className="login-left-footer">
+          <b>Top Energies</b>
+          <small>Distribution de gaz butane &middot; Dakar, Senegal</small>
+        </div>
+      </div>
 
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    autoFocus
-                    placeholder="admin@topenergies.sn"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+      <div className="login-right-panel">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit((values) =>
+              loginMutation.mutate(values),
             )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mot de passe</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Votre mot de passe"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button
-            type="submit"
-            className="primary-button wide"
-            disabled={loginMutation.isPending}
+            className="login-form"
           >
-            {loginMutation.isPending ? "Connexion..." : "Se connecter"}
-          </Button>
+            <div className="login-form-header">
+              <div className="login-form-icon">
+                <Flame />
+              </div>
+              <p className="login-eyebrow">Espace administrateur</p>
+              <h1 className="login-title">Connexion</h1>
+              <p className="login-subtitle">
+                Connectez-vous pour acceder au tableau de bord.
+              </p>
+            </div>
 
-          <Link className="back-link" href="/">
-            Retour a la boutique
-          </Link>
-        </form>
-      </Form>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="login-field">
+                  <FormLabel>Adresse email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      autoFocus
+                      placeholder="admin@topenergies.sn"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="login-field">
+                  <FormLabel>Mot de passe</FormLabel>
+                  <FormControl>
+                    <div className="login-password-wrap">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        className="login-pw-toggle"
+                        onClick={() => setShowPassword((v) => !v)}
+                        tabIndex={-1}
+                        aria-label={
+                          showPassword
+                            ? "Masquer le mot de passe"
+                            : "Afficher le mot de passe"
+                        }
+                      >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <button
+              type="submit"
+              className="login-submit"
+              disabled={loginMutation.isPending}
+            >
+              {loginMutation.isPending ? (
+                <>
+                  <span className="login-spinner" />
+                  Connexion en cours...
+                </>
+              ) : (
+                "Se connecter"
+              )}
+            </button>
+
+            <Link className="login-back" href="/">
+              <ArrowLeft />
+              Retour a la boutique
+            </Link>
+          </form>
+        </Form>
+      </div>
     </main>
   );
 }
