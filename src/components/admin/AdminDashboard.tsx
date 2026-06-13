@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   useForm,
   type FieldPath,
@@ -174,18 +174,21 @@ export default function AdminDashboard({
   const zones = initialZones;
   const settings = initialSettings;
   const admins = initialAdmins;
-  const [tab, setTab] = useState<Tab>("dashboard");
-
   const validTabs: Tab[] = ["dashboard", "orders", "products", "zones", "settings", "admins"];
-  useEffect(() => {
-    const hash = window.location.hash.slice(1) as Tab;
-    if (validTabs.includes(hash)) setTab(hash);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const tab = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener("hashchange", cb);
+      return () => window.removeEventListener("hashchange", cb);
+    },
+    () => {
+      const h = window.location.hash.slice(1) as Tab;
+      return validTabs.includes(h) ? h : "dashboard";
+    },
+    () => "dashboard" as Tab,
+  );
 
   function changeTab(newTab: Tab) {
-    setTab(newTab);
-    window.history.replaceState(null, "", `#${newTab}`);
+    window.location.hash = newTab;
   }
 
   const [selected, setSelected] = useState<Order | null>(null);
