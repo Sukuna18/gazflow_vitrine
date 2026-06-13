@@ -18,13 +18,13 @@ type Order = {
 };
 type Product = { id: number; stock: number };
 
-const statusConfig: Record<Status, { label: string; color: string; bg: string; dot: string }> = {
-  NEW:        { label: "Nouvelle",     color: "#1a5e8c", bg: "#e8f4fd", dot: "#3398c8" },
-  CONFIRMED:  { label: "Confirmee",    color: "#0e6b35", bg: "#e6f7ee", dot: "#2ab869" },
-  PREPARING:  { label: "Preparation",  color: "#7a4200", bg: "#fff4de", dot: "#f59e0b" },
-  DELIVERING: { label: "En livraison", color: "#7a3200", bg: "#fff1e8", dot: "#f97316" },
-  DELIVERED:  { label: "Livree",       color: "#065f46", bg: "#d1fae5", dot: "#10b981" },
-  CANCELLED:  { label: "Annulee",      color: "#9b1c1c", bg: "#fee2e2", dot: "#ef4444" },
+const statusConfig: Record<Status, { label: string; short: string; color: string; bg: string; dot: string }> = {
+  NEW:        { label: "Nouvelle",    short: "Nouvelle",  color: "#1a5e8c", bg: "#e8f4fd", dot: "#3398c8" },
+  CONFIRMED:  { label: "Confirmee",   short: "Confirmee", color: "#0e6b35", bg: "#e6f7ee", dot: "#2ab869" },
+  PREPARING:  { label: "Preparation", short: "Preparat.", color: "#7a4200", bg: "#fff4de", dot: "#f59e0b" },
+  DELIVERING: { label: "En livraison",short: "Livraison", color: "#7a3200", bg: "#fff1e8", dot: "#f97316" },
+  DELIVERED:  { label: "Livree",      short: "Livree",    color: "#065f46", bg: "#d1fae5", dot: "#10b981" },
+  CANCELLED:  { label: "Annulee",     short: "Annulee",   color: "#9b1c1c", bg: "#fee2e2", dot: "#ef4444" },
 };
 const statuses = Object.keys(statusConfig) as Status[];
 
@@ -158,8 +158,8 @@ function StatusSelect({ value, onChange, disabled }: { value: Status; onChange: 
         style={{ color: cfg.color, background: cfg.bg }}
       >
         <span className="status-dot" style={{ background: cfg.dot }} />
-        {cfg.label}
-        <ChevronDown size={11} className={`status-chevron${open ? " open" : ""}`} />
+        {cfg.short}
+        <ChevronDown size={10} className={`status-chevron${open ? " open" : ""}`} />
       </button>
       {open && (
         <div className="status-dropdown">
@@ -175,6 +175,7 @@ function StatusSelect({ value, onChange, disabled }: { value: Status; onChange: 
               >
                 <span className="status-dot" style={{ background: c.dot }} />
                 {c.label}
+                {s === value && <span style={{ marginLeft: "auto", fontSize: 10, opacity: .5 }}>✓</span>}
               </button>
             );
           })}
