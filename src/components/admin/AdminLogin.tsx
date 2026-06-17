@@ -62,7 +62,7 @@ export default function AdminLogin() {
         <div className="login-bg-ring ring-3" />
 
         <div className="login-left-header">
-          <BrandLogo />
+          <BrandLogo clean />
         </div>
 
         <div className="login-left-content">
