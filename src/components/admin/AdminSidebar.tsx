@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Box,
   Globe2,
   LayoutDashboard,
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/admin/orders", label: "Commandes", icon: ShoppingBag },
   { href: "/admin/products", label: "Produits", icon: Box },
   { href: "/admin/zones", label: "Zones", icon: MapPinned },
+  { href: "/admin/blog", label: "Blog", icon: BookOpen },
   { href: "/admin/settings", label: "Site", icon: Globe2 },
   { href: "/admin/admins", label: "Administrateurs", icon: Users },
 ];
