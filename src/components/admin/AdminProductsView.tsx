@@ -6,7 +6,15 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-import { ImageUp, LoaderCircle, Pencil, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import {
+  ImageUp,
+  LoaderCircle,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { money } from "@/lib/format";
 import { useMutationApi } from "@/hooks/useApi";
@@ -25,44 +33,87 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 type Product = {
-  id: number; slug: string; name: string; category: string; description: string;
-  price: number; stock: number; weight: string | null; active: boolean; featured: boolean; image: string;
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+  price: number;
+  stock: number;
+  weight: string | null;
+  active: boolean;
+  featured: boolean;
+  image: string;
 };
 type ProductFormInput = z.input<typeof productSchema>;
 type ProductFormValues = z.output<typeof productSchema>;
 
 const emptyProduct = {
-  slug: "", name: "", category: "Bouteilles", description: "",
-  price: 0, stock: 0, weight: "", image: "", featured: false, active: true,
+  slug: "",
+  name: "",
+  category: "Bouteilles",
+  description: "",
+  price: 0,
+  stock: 0,
+  weight: "",
+  image: "",
+  featured: false,
+  active: true,
 };
 
-export default function AdminProductsView({ products }: { products: Product[] }) {
+export default function AdminProductsView({
+  products,
+}: {
+  products: Product[];
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const productCreateMutation = useMutationApi<Product, ProductFormValues>(
-    "/api/admin/products", "POST",
-    { onSuccess: () => { setEditing(null); toastMessage("Produit ajoute.", "success"); router.refresh(); } },
-  );
-  const productPatchMutation = useMutationApi<Product, { id: number; data: Partial<Product> }>(
-    ({ id }) => `/api/admin/products/${id}`, "PATCH",
+    "/api/admin/products",
+    "POST",
     {
-      getData: ({ data }) => data,
-      onSuccess: (p) => { toastMessage(`${p.name} mis a jour.`, "success"); router.refresh(); },
+      onSuccess: () => {
+        setEditing(null);
+        toastMessage("Produit ajoute.", "success");
+        router.refresh();
+      },
     },
   );
+  const productPatchMutation = useMutationApi<
+    Product,
+    { id: number; data: Partial<Product> }
+  >(({ id }) => `/api/admin/products/${id}`, "PATCH", {
+    getData: ({ data }) => data,
+    onSuccess: (p) => {
+      toastMessage(`${p.name} mis a jour.`, "success");
+      router.refresh();
+    },
+  });
   const productDeleteMutation = useMutationApi<{ ok: boolean }, { id: number }>(
-    ({ id }) => `/api/admin/products/${id}`, "DELETE",
+    ({ id }) => `/api/admin/products/${id}`,
+    "DELETE",
     {
       getData: () => undefined,
-      onSuccess: () => { toastMessage("Produit supprime.", "success"); setDeleteTarget(null); router.refresh(); },
+      onSuccess: () => {
+        toastMessage("Produit supprime.", "success");
+        setDeleteTarget(null);
+        router.refresh();
+      },
     },
   );
 
@@ -73,14 +124,18 @@ export default function AdminProductsView({ products }: { products: Product[] })
   async function productSave(values: ProductFormValues) {
     if (!editing) return;
     if (editing.id) {
-      await productPatchMutation.mutateAsync({ id: editing.id, data: { ...editing, ...values } });
+      await productPatchMutation.mutateAsync({
+        id: editing.id,
+        data: { ...editing, ...values },
+      });
       setEditing(null);
     } else {
       await productCreateMutation.mutateAsync(values);
     }
   }
 
-  const saving = productCreateMutation.isPending || productPatchMutation.isPending;
+  const saving =
+    productCreateMutation.isPending || productPatchMutation.isPending;
 
   return (
     <section className="admin-main">
@@ -89,46 +144,87 @@ export default function AdminProductsView({ products }: { products: Product[] })
           <p>Espace administrateur</p>
           <h1>Catalogue</h1>
         </div>
-        <a href="/" target="_blank">Voir la boutique</a>
+        <a href="/" target="_blank">
+          Voir la boutique
+        </a>
       </header>
 
       <section className="admin-panel">
         <div className="panel-title">
-          <div><p>Gestion du catalogue</p><h2>Produits affiches en boutique</h2></div>
-          <Button onClick={() => setEditing(emptyProduct)}><Plus /> Ajouter</Button>
+          <div>
+            <p>Gestion du catalogue</p>
+            <h2>Produits affiches en boutique</h2>
+          </div>
+          <Button onClick={() => setEditing(emptyProduct)}>
+            <Plus /> Ajouter
+          </Button>
         </div>
         <div className="product-admin-list">
           {products.map((product) => (
             <div className="product-admin expanded" key={product.id}>
               <div className="admin-product-image">
-                <Image src={product.image} alt="" fill className="object-contain" sizes="60px" unoptimized />
+                <Image
+                  src={product.image}
+                  alt=""
+                  fill
+                  className="object-contain"
+                  sizes="60px"
+                  unoptimized
+                />
               </div>
               <div>
                 <b>{product.name}</b>
-                <small>{product.category} · {money(product.price)} · {product.active ? "Visible" : "Masque"}</small>
+                <small>
+                  {product.category} · {money(product.price)} ·{" "}
+                  {product.active ? "Visible" : "Masque"}
+                </small>
               </div>
               <Label>
                 Stock
                 <Input
                   key={product.stock}
-                  type="number" min="0"
+                  type="number"
+                  min="0"
                   defaultValue={product.stock}
-                  onBlur={(e) => productPatch(product.id, { stock: Number(e.target.value) })}
+                  onBlur={(e) =>
+                    productPatch(product.id, { stock: Number(e.target.value) })
+                  }
                 />
               </Label>
               <Label className="switch-label">
-                <Checkbox className="admin-checkbox" checked={product.featured}
-                  onCheckedChange={(c) => productPatch(product.id, { featured: c === true })} /> Populaire
+                <Checkbox
+                  className="admin-checkbox"
+                  checked={product.featured}
+                  onCheckedChange={(c) =>
+                    productPatch(product.id, { featured: c === true })
+                  }
+                />{" "}
+                Populaire
               </Label>
               <Label className="switch-label">
-                <Checkbox className="admin-checkbox" checked={product.active}
-                  onCheckedChange={(c) => productPatch(product.id, { active: c === true })} /> Visible
+                <Checkbox
+                  className="admin-checkbox"
+                  checked={product.active}
+                  onCheckedChange={(c) =>
+                    productPatch(product.id, { active: c === true })
+                  }
+                />{" "}
+                Visible
               </Label>
-              <Button variant="outline" size="icon" className="icon-action" onClick={() => setEditing(product)}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="icon-action"
+                onClick={() => setEditing(product)}
+              >
                 <Pencil />
               </Button>
-              <Button variant="outline" size="icon" className="icon-action danger"
-                onClick={() => setDeleteTarget(product)}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="icon-action danger"
+                onClick={() => setDeleteTarget(product)}
+              >
                 <Trash2 />
               </Button>
               {productPatchMutation.isPending && <RefreshCw className="spin" />}
@@ -147,18 +243,29 @@ export default function AdminProductsView({ products }: { products: Product[] })
         />
       )}
 
-      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
             <AlertDialogDescription>
-              <b>{deleteTarget?.name}</b> sera definitivement supprime. Cette action est irreversible.
+              <b>{deleteTarget?.name}</b> sera definitivement supprime. Cette
+              action est irreversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>
+              Annuler
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteTarget && productDeleteMutation.mutate({ id: deleteTarget.id })}
+              onClick={() =>
+                deleteTarget &&
+                productDeleteMutation.mutate({ id: deleteTarget.id })
+              }
               disabled={productDeleteMutation.isPending}
             >
               {productDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
@@ -172,16 +279,25 @@ export default function AdminProductsView({ products }: { products: Product[] })
 
 function productFormDefaults(product: Partial<Product>): ProductFormInput {
   return {
-    slug: product.slug ?? "", name: product.name ?? "",
-    category: product.category ?? "Bouteilles", description: product.description ?? "",
-    price: product.price ?? 0, stock: product.stock ?? 0,
-    weight: product.weight ?? "", image: product.image ?? "",
-    featured: product.featured ?? false, active: product.active ?? true,
+    slug: product.slug ?? "",
+    name: product.name ?? "",
+    category: product.category ?? "Bouteilles",
+    description: product.description ?? "",
+    price: product.price ?? 0,
+    stock: product.stock ?? 0,
+    weight: product.weight ?? "",
+    image: product.image ?? "",
+    featured: product.featured ?? false,
+    active: product.active ?? true,
   };
 }
 
 function ProductEditor({
-  product, setProduct, close, submit, saving,
+  product,
+  setProduct,
+  close,
+  submit,
+  saving,
 }: {
   product: Partial<Product>;
   setProduct: (p: Partial<Product>) => void;
@@ -210,10 +326,15 @@ function ProductEditor({
   }, [product.id, product.image]);
 
   useEffect(() => {
-    return () => { if (blobUrl.current) URL.revokeObjectURL(blobUrl.current); };
+    return () => {
+      if (blobUrl.current) URL.revokeObjectURL(blobUrl.current);
+    };
   }, []);
 
-  function patchProduct<K extends keyof ProductFormInput>(name: K, value: ProductFormInput[K]) {
+  function patchProduct<K extends keyof ProductFormInput>(
+    name: K,
+    value: ProductFormInput[K],
+  ) {
     setProduct({ ...product, [name]: value });
   }
 
@@ -236,18 +357,30 @@ function ProductEditor({
       try {
         const fd = new FormData();
         fd.append("file", pendingFile);
-        const res = await fetch("/api/admin/uploads/products", { method: "POST", body: fd });
+        const res = await fetch("/api/admin/uploads/products", {
+          method: "POST",
+          body: fd,
+        });
         const data = await res.json().catch(() => null);
         if (!res.ok) {
           const err = data?.error ?? "Impossible d'envoyer cette image.";
-          setUploadError(err); toastMessage(err, "error"); return;
+          setUploadError(err);
+          toastMessage(err, "error");
+          return;
         }
-        URL.revokeObjectURL(blobUrl.current); blobUrl.current = "";
-        imagePath = data.path; setPreviewImage(data.path); setPendingFile(null);
+        URL.revokeObjectURL(blobUrl.current);
+        blobUrl.current = "";
+        imagePath = data.path;
+        setPreviewImage(data.path);
+        setPendingFile(null);
       } catch {
         const err = "Impossible d'envoyer cette image. Reessayez.";
-        setUploadError(err); toastMessage(err, "error"); return;
-      } finally { setUploading(false); }
+        setUploadError(err);
+        toastMessage(err, "error");
+        return;
+      } finally {
+        setUploading(false);
+      }
     }
     await submit({ ...values, image: imagePath });
   }
@@ -255,7 +388,9 @@ function ProductEditor({
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) close(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
     >
       <Form {...form}>
         <form
@@ -265,7 +400,15 @@ function ProductEditor({
             if (msg) toastMessage(String(msg), "error");
           })}
         >
-          <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 text-slate-400" onClick={close}><X /></Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 top-3 text-slate-400"
+            onClick={close}
+          >
+            <X />
+          </Button>
           <p className="col-span-2 m-0 text-[10px] font-black tracking-widest uppercase text-orange-600">
             {product.id ? "Modifier le produit" : "Nouveau produit"}
           </p>
@@ -274,82 +417,190 @@ function ProductEditor({
           </h2>
 
           {(["name", "slug", "category", "weight"] as const).map((name) => (
-            <FormField key={name} control={form.control} name={name} render={({ field }) => (
-              <FormItem className="relative">
-                <FormLabel>{{ name: "Nom", slug: "Slug unique", category: "Categorie", weight: "Poids" }[name]}</FormLabel>
-                <FormControl>
-                  <Input value={field.value ?? ""} onChange={(e) => { field.onChange(e); patchProduct(name, e.target.value); }} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <FormField
+              key={name}
+              control={form.control}
+              name={name}
+              render={({ field }) => (
+                <FormItem className="relative">
+                  <FormLabel>
+                    {
+                      {
+                        name: "Nom",
+                        slug: "Slug unique",
+                        category: "Categorie",
+                        weight: "Poids/Métres",
+                      }[name]
+                    }
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        patchProduct(name, e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           ))}
 
           {(["price", "stock"] as const).map((name) => (
-            <FormField key={name} control={form.control} name={name} render={({ field }) => (
-              <FormItem className="relative">
-                <FormLabel>{{ price: "Prix FCFA", stock: "Stock" }[name]}</FormLabel>
+            <FormField
+              key={name}
+              control={form.control}
+              name={name}
+              render={({ field }) => (
+                <FormItem className="relative">
+                  <FormLabel>
+                    {{ price: "Prix FCFA", stock: "Stock" }[name]}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={field.value}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        field.onChange(v);
+                        patchProduct(name, v);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ))}
+
+          <FormField
+            control={form.control}
+            name="image"
+            render={() => (
+              <FormItem className="col-span-2 grid grid-cols-[76px_1fr] items-center gap-3 rounded-xl border border-dashed border-sky-200 bg-sky-50/50 p-3">
+                <div className="relative grid size-[76px] place-items-center overflow-hidden rounded-lg bg-sky-100">
+                  {previewImage ? (
+                    <Image
+                      src={previewImage}
+                      alt=""
+                      fill
+                      sizes="76px"
+                      className="object-contain"
+                      unoptimized
+                    />
+                  ) : (
+                    <ImageUp />
+                  )}
+                </div>
+                <div>
+                  <b className="text-[11px] font-bold">Image du produit</b>
+                  <small className="my-1 block text-[9px] text-slate-400">
+                    JPG, PNG ou WEBP · 5 Mo maximum
+                  </small>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={onFileChange}
+                    disabled={uploading || saving}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || saving}
+                  >
+                    {uploading ? (
+                      <LoaderCircle className="spin" />
+                    ) : (
+                      <ImageUp />
+                    )}
+                    {uploading
+                      ? "Envoi en cours..."
+                      : pendingFile
+                        ? "Image selectionnee"
+                        : product.image
+                          ? "Remplacer l'image"
+                          : "Choisir une image"}
+                  </Button>
+                  {uploadError ? <em>{uploadError}</em> : <FormMessage />}
+                </div>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem className="relative col-span-2">
+                <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input type="number" min="0" value={field.value}
-                    onChange={(e) => { const v = Number(e.target.value); field.onChange(v); patchProduct(name, v); }} />
+                  <Textarea
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      patchProduct("description", e.target.value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )} />
-          ))}
-
-          <FormField control={form.control} name="image" render={() => (
-            <FormItem className="col-span-2 grid grid-cols-[76px_1fr] items-center gap-3 rounded-xl border border-dashed border-sky-200 bg-sky-50/50 p-3">
-              <div className="relative grid size-[76px] place-items-center overflow-hidden rounded-lg bg-sky-100">
-                {previewImage
-                  ? <Image src={previewImage} alt="" fill sizes="76px" className="object-contain" unoptimized />
-                  : <ImageUp />}
-              </div>
-              <div>
-                <b className="text-[11px] font-bold">Image du produit</b>
-                <small className="my-1 block text-[9px] text-slate-400">JPG, PNG ou WEBP · 5 Mo maximum</small>
-                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onFileChange} disabled={uploading || saving} className="hidden" />
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading || saving}>
-                  {uploading ? <LoaderCircle className="spin" /> : <ImageUp />}
-                  {uploading ? "Envoi en cours..." : pendingFile ? "Image selectionnee" : product.image ? "Remplacer l'image" : "Choisir une image"}
-                </Button>
-                {uploadError ? <em>{uploadError}</em> : <FormMessage />}
-              </div>
-            </FormItem>
-          )} />
-
-          <FormField control={form.control} name="description" render={({ field }) => (
-            <FormItem className="relative col-span-2">
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} onChange={(e) => { field.onChange(e); patchProduct("description", e.target.value); }} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+            )}
+          />
 
           <div className="col-span-2 flex gap-3">
             {(["featured", "active"] as const).map((name) => (
-              <FormField key={name} control={form.control} name={name} render={({ field }) => (
-                <FormItem className="flex items-center gap-2 min-w-[170px] rounded-lg border border-slate-200 px-3 py-2 cursor-pointer">
-                  <FormLabel>
-                    <FormControl>
-                      <Checkbox className="admin-checkbox" checked={field.value}
-                        onCheckedChange={(c) => { const v = c === true; field.onChange(v); patchProduct(name, v); }} />
-                    </FormControl>
-                    <span>
-                      <b>{{ featured: "Populaire", active: "Visible" }[name]}</b>
-                      <small>{{ featured: "Mettre le produit en avant", active: "Afficher dans la boutique" }[name]}</small>
-                    </span>
-                  </FormLabel>
-                </FormItem>
-              )} />
+              <FormField
+                key={name}
+                control={form.control}
+                name={name}
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 min-w-[170px] rounded-lg border border-slate-200 px-3 py-2 cursor-pointer">
+                    <FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          className="admin-checkbox"
+                          checked={field.value}
+                          onCheckedChange={(c) => {
+                            const v = c === true;
+                            field.onChange(v);
+                            patchProduct(name, v);
+                          }}
+                        />
+                      </FormControl>
+                      <span>
+                        <b>
+                          {{ featured: "Populaire", active: "Visible" }[name]}
+                        </b>
+                        <small>
+                          {
+                            {
+                              featured: " Mettre le produit en avant",
+                              active: " Afficher dans la boutique",
+                            }[name]
+                          }
+                        </small>
+                      </span>
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
             ))}
           </div>
 
           <div className="col-span-2 flex justify-end pt-2">
             <Button type="submit" disabled={uploading || saving}>
-              {uploading ? "Envoi de l'image..." : saving ? "Enregistrement..." : "Enregistrer le produit"}
+              {uploading
+                ? "Envoi de l'image..."
+                : saving
+                  ? "Enregistrement..."
+                  : "Enregistrer le produit"}
             </Button>
           </div>
         </form>
