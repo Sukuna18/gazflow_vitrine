@@ -14,7 +14,7 @@ import { toastMessage } from "@/lib/toast";
 import { productSchema } from "@/lib/validations/product";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,26 +137,22 @@ export default function AdminProductsView({ products }: { products: Product[] })
         />
       )}
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              <b>{deleteTarget?.name}</b> sera definitivement supprime de la base de donnees. Cette action est irreversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              className="product-save-button"
-              disabled={productDeleteMutation.isPending}
-              onClick={() => deleteTarget && productDeleteMutation.mutate({ id: deleteTarget.id })}
-            >
-              {productDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteTarget && (
+        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}>
+          <div style={{ position: "relative", width: "min(360px,100%)", borderRadius: 15, padding: 24, background: "#fff" }}>
+            <p style={{ margin: "0 0 6px", color: "var(--orange)", fontSize: 11, fontWeight: 900 }}>Confirmation</p>
+            <h2 style={{ margin: "0 0 8px" }}>Supprimer ce produit ?</h2>
+            <small style={{ display: "block", marginBottom: 20, color: "#829590" }}><b>{deleteTarget.name}</b> sera definitivement supprime. Cette action est irreversible.</small>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)}>Annuler</Button>
+              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
+                onClick={() => productDeleteMutation.mutate({ id: deleteTarget.id })} disabled={productDeleteMutation.isPending}>
+                {productDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

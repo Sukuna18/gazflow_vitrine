@@ -11,7 +11,7 @@ import { useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
 import { adminSchema } from "@/lib/validations/admin";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -74,26 +74,22 @@ export default function AdminAdminsView({
         </div>
       </section>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Le compte <b>{deleteTarget?.email}</b> sera definitivement supprime. Cette action est irreversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              className="product-save-button"
-              disabled={adminDeleteMutation.isPending}
-              onClick={() => deleteTarget && adminDeleteMutation.mutate({ id: deleteTarget.id })}
-            >
-              {adminDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteTarget && (
+        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}>
+          <div style={{ position: "relative", width: "min(360px,100%)", borderRadius: 15, padding: 24, background: "#fff" }}>
+            <p style={{ margin: "0 0 6px", color: "var(--orange)", fontSize: 11, fontWeight: 900 }}>Confirmation</p>
+            <h2 style={{ margin: "0 0 8px" }}>Supprimer ce compte ?</h2>
+            <small style={{ display: "block", marginBottom: 20, color: "#829590" }}>Le compte <b>{deleteTarget.email}</b> sera definitivement supprime. Cette action est irreversible.</small>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <Button variant="outline" onClick={() => setDeleteTarget(null)}>Annuler</Button>
+              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
+                onClick={() => adminDeleteMutation.mutate({ id: deleteTarget.id })} disabled={adminDeleteMutation.isPending}>
+                {adminDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
