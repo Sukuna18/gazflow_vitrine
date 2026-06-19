@@ -57,9 +57,9 @@ export default function AdminLogin() {
   return (
     <main className="admin-login">
       <div className="login-left-panel">
-        <div className="login-bg-ring ring-1" />
-        <div className="login-bg-ring ring-2" />
-        <div className="login-bg-ring ring-3" />
+        <div className="login-bg-ring login-bg-ring-1" />
+        <div className="login-bg-ring login-bg-ring-2" />
+        <div className="login-bg-ring login-bg-ring-3" />
 
         <div className="login-left-header">
           <BrandLogo clean />
