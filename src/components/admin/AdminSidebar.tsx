@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -32,6 +33,9 @@ const navItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [confirm, setConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <aside className="admin-side">
@@ -56,7 +60,7 @@ export default function AdminSidebar() {
         <LogOut /> Deconnexion
       </Button>
 
-      {confirm && (
+      {confirm && mounted && createPortal(
         <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setConfirm(false); }}>
           <div style={{ position: "relative", width: "min(340px,100%)", borderRadius: 15, padding: 24, background: "#fff" }}>
             <p style={{ margin: "0 0 6px", color: "var(--orange)", fontSize: 11, fontWeight: 900 }}>Confirmation</p>
@@ -71,7 +75,8 @@ export default function AdminSidebar() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </aside>
   );
