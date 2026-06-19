@@ -5,11 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import { useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
 import { adminSchema } from "@/lib/validations/admin";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
@@ -23,6 +25,7 @@ export default function AdminAdminsView({
   currentAdminId: number;
 }) {
   const router = useRouter();
+  const [deleteTarget, setDeleteTarget] = useState<Admin | null>(null);
 
   const adminCreateMutation = useMutationApi<Admin, AdminFormValues>(
     "/api/admin/admins", "POST",
@@ -30,7 +33,7 @@ export default function AdminAdminsView({
   );
   const adminDeleteMutation = useMutationApi<{ id: number }, { id: number }>(
     ({ id }) => `/api/admin/admins/${id}`, "DELETE",
-    { getData: () => undefined, onSuccess: () => { toastMessage("Compte supprime.", "success"); router.refresh(); } },
+    { getData: () => undefined, onSuccess: () => { toastMessage("Compte supprime.", "success"); setDeleteTarget(null); router.refresh(); } },
   );
 
   return (
@@ -62,7 +65,7 @@ export default function AdminAdminsView({
               <Button variant="outline" size="icon"
                 disabled={admin.id === currentAdminId}
                 className="icon-action danger"
-                onClick={() => adminDeleteMutation.mutate({ id: admin.id })}
+                onClick={() => setDeleteTarget(admin)}
                 title={admin.id === currentAdminId ? "Vous ne pouvez pas supprimer votre propre compte" : "Supprimer"}>
                 <Trash2 />
               </Button>
@@ -70,6 +73,27 @@ export default function AdminAdminsView({
           ))}
         </div>
       </section>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce compte ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le compte <b>{deleteTarget?.email}</b> sera definitivement supprime. Cette action est irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="product-save-button"
+              disabled={adminDeleteMutation.isPending}
+              onClick={() => deleteTarget && adminDeleteMutation.mutate({ id: deleteTarget.id })}
+            >
+              {adminDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

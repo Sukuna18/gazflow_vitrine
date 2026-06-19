@@ -14,6 +14,7 @@ import { toastMessage } from "@/lib/toast";
 import { productSchema } from "@/lib/validations/product";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ const emptyProduct = {
 export default function AdminProductsView({ products }: { products: Product[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const productCreateMutation = useMutationApi<Product, ProductFormValues>(
     "/api/admin/products", "POST",
@@ -46,11 +48,11 @@ export default function AdminProductsView({ products }: { products: Product[] })
       onSuccess: (p) => { toastMessage(`${p.name} mis a jour.`, "success"); router.refresh(); },
     },
   );
-  const productDeleteMutation = useMutationApi<Product, { id: number }>(
+  const productDeleteMutation = useMutationApi<{ ok: boolean }, { id: number }>(
     ({ id }) => `/api/admin/products/${id}`, "DELETE",
     {
       getData: () => undefined,
-      onSuccess: (p) => { toastMessage(`${p.name} retire.`, "success"); router.refresh(); },
+      onSuccess: () => { toastMessage("Produit supprime.", "success"); setDeleteTarget(null); router.refresh(); },
     },
   );
 
@@ -116,7 +118,7 @@ export default function AdminProductsView({ products }: { products: Product[] })
                 <Pencil />
               </Button>
               <Button variant="outline" size="icon" className="icon-action danger"
-                onClick={() => productDeleteMutation.mutate({ id: product.id })}>
+                onClick={() => setDeleteTarget(product)}>
                 <Trash2 />
               </Button>
               {productPatchMutation.isPending && <RefreshCw className="spin" />}
@@ -134,6 +136,27 @@ export default function AdminProductsView({ products }: { products: Product[] })
           saving={saving}
         />
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce produit ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <b>{deleteTarget?.name}</b> sera definitivement supprime de la base de donnees. Cette action est irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="product-save-button"
+              disabled={productDeleteMutation.isPending}
+              onClick={() => deleteTarget && productDeleteMutation.mutate({ id: deleteTarget.id })}
+            >
+              {productDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

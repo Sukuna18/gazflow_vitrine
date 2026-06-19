@@ -1,35 +1,46 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
-import { Plus, Trash2 } from "lucide-react";
+import { Edit2, MapPin, Plus, Trash2, X } from "lucide-react";
 
 import { useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
 import { zoneSchema } from "@/lib/validations/zone";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { money } from "@/lib/format";
 
 type Zone = { id: number; name: string; fee: number; eta: string };
 type ZoneFormValues = z.infer<typeof zoneSchema>;
 
 export default function AdminZonesView({ zones }: { zones: Zone[] }) {
   const router = useRouter();
+  const [editTarget, setEditTarget] = useState<Zone | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Zone | null>(null);
 
   const zoneCreateMutation = useMutationApi<Zone, ZoneFormValues>(
     "/api/admin/zones", "POST",
-    { onSuccess: (z) => { toastMessage(`${z.name} disponible.`, "success"); router.refresh(); } },
+    { onSuccess: (z) => { toastMessage(`${z.name} ajoutee.`, "success"); router.refresh(); } },
   );
-  const zonePatchMutation = useMutationApi<Zone, { id: number; data: Partial<Zone> }>(
+  const zonePatchMutation = useMutationApi<Zone, { id: number } & ZoneFormValues>(
     ({ id }) => `/api/admin/zones/${id}`, "PATCH",
-    { getData: ({ data }) => data, onSuccess: (z) => { toastMessage(`${z.name} mis a jour.`, "success"); router.refresh(); } },
+    {
+      getData: ({ id: _id, ...data }) => data,
+      onSuccess: (z) => { toastMessage(`${z.name} mis a jour.`, "success"); setEditTarget(null); router.refresh(); },
+    },
   );
   const zoneDeleteMutation = useMutationApi<Zone, { id: number }>(
     ({ id }) => `/api/admin/zones/${id}`, "DELETE",
-    { getData: () => undefined, onSuccess: () => { toastMessage("Zone retiree.", "success"); router.refresh(); } },
+    {
+      getData: () => undefined,
+      onSuccess: () => { toastMessage("Zone supprimee.", "success"); setDeleteTarget(null); router.refresh(); },
+    },
   );
 
   return (
@@ -46,27 +57,70 @@ export default function AdminZonesView({ zones }: { zones: Zone[] }) {
         <div className="panel-title">
           <div><p>Livraison</p><h2>Zones et tarifs</h2></div>
         </div>
+
         <ZoneCreateForm
           saving={zoneCreateMutation.isPending}
           onSave={async (v) => { await zoneCreateMutation.mutateAsync(v); }}
         />
+
         <div className="zone-admin-list">
           {zones.map((zone) => (
-            <div key={zone.id}>
-              <Input defaultValue={zone.name}
-                onBlur={(e) => zonePatchMutation.mutate({ id: zone.id, data: { name: e.target.value } })} />
-              <Input type="number" defaultValue={zone.fee}
-                onBlur={(e) => zonePatchMutation.mutate({ id: zone.id, data: { fee: Number(e.target.value) } })} />
-              <Input defaultValue={zone.eta}
-                onBlur={(e) => zonePatchMutation.mutate({ id: zone.id, data: { eta: e.target.value } })} />
-              <Button variant="outline" size="icon" className="icon-action danger"
-                onClick={() => zoneDeleteMutation.mutate({ id: zone.id })}>
-                <Trash2 />
-              </Button>
+            <div key={zone.id} className="zone-admin-row">
+              <div className="zone-admin-name">
+                <MapPin size={13} />
+                <b>{zone.name}</b>
+              </div>
+              <span className="zone-admin-fee">{money(zone.fee)}</span>
+              <span className="zone-admin-eta">{zone.eta}</span>
+              <div className="zone-admin-actions">
+                <Button variant="outline" size="icon" className="icon-action" onClick={() => setEditTarget(zone)} title="Modifier">
+                  <Edit2 />
+                </Button>
+                <Button variant="outline" size="icon" className="icon-action danger" onClick={() => setDeleteTarget(zone)} title="Supprimer">
+                  <Trash2 />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
       </section>
+
+      {editTarget && (
+        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setEditTarget(null); }}>
+          <div style={{ position: "relative", width: "min(460px,100%)", borderRadius: 20, padding: 24, background: "#fff" }}>
+            <button className="modal-x" onClick={() => setEditTarget(null)}><X /></button>
+            <p style={{ margin: "0 0 4px", color: "var(--orange)", fontSize: 11, fontWeight: 900, letterSpacing: ".15em", textTransform: "uppercase" }}>Livraison</p>
+            <h2 style={{ margin: "0 0 18px" }}>Modifier la zone</h2>
+            <ZoneEditForm
+              zone={editTarget}
+              saving={zonePatchMutation.isPending}
+              onSave={(v) => zonePatchMutation.mutate({ id: editTarget.id, ...v })}
+              onCancel={() => setEditTarget(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette zone ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <b>{deleteTarget?.name}</b> sera definitivement supprimee. Impossible si des commandes y sont rattachees.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="product-save-button"
+              disabled={zoneDeleteMutation.isPending}
+              onClick={() => deleteTarget && zoneDeleteMutation.mutate({ id: deleteTarget.id })}
+            >
+              {zoneDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
@@ -88,7 +142,7 @@ function ZoneCreateForm({ saving, onSave }: { saving: boolean; onSave: (v: ZoneF
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem className="admin-form-field">
             <FormLabel>Nom de zone</FormLabel>
-            <FormControl><Input placeholder="Nom de zone" {...field} /></FormControl>
+            <FormControl><Input placeholder="ex: Dakar centre" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
@@ -96,7 +150,7 @@ function ZoneCreateForm({ saving, onSave }: { saving: boolean; onSave: (v: ZoneF
           <FormItem className="admin-form-field">
             <FormLabel>Frais FCFA</FormLabel>
             <FormControl>
-              <Input type="number" min="0" placeholder="Frais FCFA" value={field.value}
+              <Input type="number" min="0" placeholder="2000" value={field.value}
                 onChange={(e) => field.onChange(Number(e.target.value))} />
             </FormControl>
             <FormMessage />
@@ -110,6 +164,58 @@ function ZoneCreateForm({ saving, onSave }: { saving: boolean; onSave: (v: ZoneF
           </FormItem>
         )} />
         <Button type="submit" disabled={saving}><Plus /> Ajouter</Button>
+      </form>
+    </Form>
+  );
+}
+
+function ZoneEditForm({ zone, saving, onSave, onCancel }: {
+  zone: Zone; saving: boolean;
+  onSave: (v: ZoneFormValues) => void;
+  onCancel: () => void;
+}) {
+  const form = useForm<ZoneFormValues>({
+    resolver: zodResolver(zoneSchema),
+    defaultValues: { name: zone.name, fee: zone.fee, eta: zone.eta },
+  });
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSave)} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+        <FormField control={form.control} name="name" render={({ field }) => (
+          <FormItem className="admin-form-field">
+            <FormLabel>Nom de zone</FormLabel>
+            <FormControl><Input {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="fee" render={({ field }) => (
+          <FormItem className="admin-form-field">
+            <FormLabel>Frais FCFA</FormLabel>
+            <FormControl>
+              <Input type="number" min="0" value={field.value}
+                onChange={(e) => field.onChange(Number(e.target.value))} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="eta" render={({ field }) => (
+          <FormItem className="admin-form-field">
+            <FormLabel>Delai estimé</FormLabel>
+            <FormControl><Input placeholder="30 - 45 min" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
+          <button type="button" className="product-save-button"
+            style={{ background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
+            onClick={onCancel}>
+            Annuler
+          </button>
+          <button type="submit" className="product-save-button" disabled={saving}>
+            {saving ? "Enregistrement..." : "Mettre a jour"}
+          </button>
+        </div>
       </form>
     </Form>
   );

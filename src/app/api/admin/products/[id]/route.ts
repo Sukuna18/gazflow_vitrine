@@ -28,5 +28,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Non autorise." }, { status: 401 });
   const id = Number((await params).id);
-  return NextResponse.json(await prisma.product.update({ where: { id }, data: { active: false } }));
+  const product = await prisma.product.findUnique({ where: { id }, select: { image: true } });
+  if (!product) return NextResponse.json({ error: "Produit introuvable." }, { status: 404 });
+  await prisma.product.delete({ where: { id } });
+  if (product.image) await deleteUploadedImage(product.image);
+  return NextResponse.json({ ok: true });
 }
