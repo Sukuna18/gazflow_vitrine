@@ -230,8 +230,8 @@ export default function AdminPartnersView() {
             <h2 style={{ margin: "0 0 18px" }}>Supprimer ce partenaire ?</h2>
             <small style={{ display: "block", marginBottom: 20, color: "#829590" }}>Cette action est irreversible.</small>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
+              <button className="modal-btn modal-btn-cancel" onClick={() => setDeleteConfirm(null)}>Annuler</button>
+              <button className="modal-btn modal-btn-danger"
                 onClick={() => deleteMutation.mutate(deleteConfirm!)} disabled={deleteMutation.isPending}>
                 {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
               </button>

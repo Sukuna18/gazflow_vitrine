@@ -63,9 +63,9 @@ export default function AdminSidebar() {
             <h2 style={{ margin: "0 0 8px" }}>Se deconnecter ?</h2>
             <small style={{ display: "block", marginBottom: 20, color: "#829590" }}>Vous serez redirige vers la page de connexion.</small>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setConfirm(false)}>Annuler</button>
+              <button className="modal-btn modal-btn-cancel" onClick={() => setConfirm(false)}>Annuler</button>
               <form action="/api/auth/logout" method="post" style={{ margin: 0 }}>
-                <button type="submit" className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}>
+                <button type="submit" className="modal-btn modal-btn-danger">
                   Se deconnecter
                 </button>
               </form>
