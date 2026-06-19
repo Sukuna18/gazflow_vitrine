@@ -37,6 +37,8 @@ services:
       ADMIN_SECRET: ${ADMIN_SECRET}
       UPLOAD_DIR: /app/public/uploads/products
       PUBLIC_UPLOAD_PATH: /uploads/products
+      BLOG_UPLOAD_DIR: /app/public/uploads/blog
+      BLOG_PUBLIC_UPLOAD_PATH: /uploads/blog
       NODE_ENV: production
       MAIL_HOST: ${MAIL_HOST:-smtp.hostinger.com}
       MAIL_PORT: ${MAIL_PORT:-465}
@@ -45,6 +47,7 @@ services:
       MAIL_NOTIFY_TO: ${MAIL_NOTIFY_TO}
     volumes:
       - media_products:/app/public/uploads/products
+      - media_blog:/app/public/uploads/blog
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,11 +65,13 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - media_products:/srv/uploads/products:ro
+      - media_blog:/srv/uploads/blog:ro
     depends_on:
       - frontend
 
 volumes:
   postgres_data:
   media_products:
+  media_blog:
   caddy_data:
   caddy_config:

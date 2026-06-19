@@ -24,9 +24,11 @@ export async function POST(request: Request) {
   if (!result.success) return NextResponse.json({ error: result.error.issues[0]?.message ?? "Selectionnez une image." }, { status: 400 });
   const file = result.data;
   const extension = extensions.get(file.type)!;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "blog");
+  const uploadDir = process.env.BLOG_UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads", "blog");
+  const publicPath = process.env.BLOG_PUBLIC_UPLOAD_PATH ?? "/uploads/blog";
   const filename = `${randomUUID()}.${extension}`;
+
   await mkdir(uploadDir, { recursive: true });
   await writeFile(path.join(uploadDir, filename), Buffer.from(await file.arrayBuffer()));
-  return NextResponse.json({ path: `/uploads/blog/${filename}` }, { status: 201 });
+  return NextResponse.json({ path: `${publicPath.replace(/\/$/, "")}/${filename}` }, { status: 201 });
 }
