@@ -156,16 +156,8 @@ export default function AdminProductsView({ products }: { products: Product[] })
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-              onClick={() => setDeleteTarget(null)}
-            >
-              Annuler
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
               onClick={() => deleteTarget && productDeleteMutation.mutate({ id: deleteTarget.id })}
               disabled={productDeleteMutation.isPending}
             >
@@ -202,6 +194,7 @@ function ProductEditor({
   const [previewImage, setPreviewImage] = useState(product.image ?? "");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const blobUrl = useRef("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -260,20 +253,29 @@ function ProductEditor({
   }
 
   return (
-    <div className="admin-order-modal">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) close(); }}
+    >
       <Form {...form}>
-        <form className="product-editor"
+        <form
+          className="relative grid grid-cols-2 gap-3 w-full max-w-[650px] max-h-[94vh] overflow-auto rounded-2xl bg-white p-6"
           onSubmit={form.handleSubmit(handleSubmit, (e) => {
             const msg = Object.values(e)[0]?.message;
             if (msg) toastMessage(String(msg), "error");
-          })}>
-          <Button type="button" variant="ghost" size="icon" className="modal-x" onClick={close}><X /></Button>
-          <p>{product.id ? "Modifier le produit" : "Nouveau produit"}</p>
-          <h2>{watchedName || "Produit boutique"}</h2>
+          })}
+        >
+          <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 text-slate-400" onClick={close}><X /></Button>
+          <p className="col-span-2 m-0 text-[10px] font-black tracking-widest uppercase text-orange-600">
+            {product.id ? "Modifier le produit" : "Nouveau produit"}
+          </p>
+          <h2 className="col-span-2 m-0 mb-1 text-xl font-bold text-slate-700">
+            {watchedName || "Produit boutique"}
+          </h2>
 
           {(["name", "slug", "category", "weight"] as const).map((name) => (
             <FormField key={name} control={form.control} name={name} render={({ field }) => (
-              <FormItem className="admin-form-field">
+              <FormItem className="relative">
                 <FormLabel>{{ name: "Nom", slug: "Slug unique", category: "Categorie", weight: "Poids" }[name]}</FormLabel>
                 <FormControl>
                   <Input value={field.value ?? ""} onChange={(e) => { field.onChange(e); patchProduct(name, e.target.value); }} />
@@ -285,7 +287,7 @@ function ProductEditor({
 
           {(["price", "stock"] as const).map((name) => (
             <FormField key={name} control={form.control} name={name} render={({ field }) => (
-              <FormItem className="admin-form-field">
+              <FormItem className="relative">
                 <FormLabel>{{ price: "Prix FCFA", stock: "Stock" }[name]}</FormLabel>
                 <FormControl>
                   <Input type="number" min="0" value={field.value}
@@ -297,25 +299,27 @@ function ProductEditor({
           ))}
 
           <FormField control={form.control} name="image" render={() => (
-            <FormItem className="product-uploader wide-field">
-              {previewImage
-                ? <div className="upload-preview"><Image src={previewImage} alt="" fill sizes="76px" className="object-contain" unoptimized /></div>
-                : <span className="upload-placeholder"><ImageUp /></span>}
+            <FormItem className="col-span-2 grid grid-cols-[76px_1fr] items-center gap-3 rounded-xl border border-dashed border-sky-200 bg-sky-50/50 p-3">
+              <div className="relative grid size-[76px] place-items-center overflow-hidden rounded-lg bg-sky-100">
+                {previewImage
+                  ? <Image src={previewImage} alt="" fill sizes="76px" className="object-contain" unoptimized />
+                  : <ImageUp />}
+              </div>
               <div>
-                <b>Image du produit</b>
-                <small>JPG, PNG ou WEBP · 5 Mo maximum</small>
-                <Label className="upload-trigger">
+                <b className="text-[11px] font-bold">Image du produit</b>
+                <small className="my-1 block text-[9px] text-slate-400">JPG, PNG ou WEBP · 5 Mo maximum</small>
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onFileChange} disabled={uploading || saving} className="hidden" />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading || saving}>
                   {uploading ? <LoaderCircle className="spin" /> : <ImageUp />}
                   {uploading ? "Envoi en cours..." : pendingFile ? "Image selectionnee" : product.image ? "Remplacer l'image" : "Choisir une image"}
-                  <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={onFileChange} disabled={uploading || saving} />
-                </Label>
+                </Button>
                 {uploadError ? <em>{uploadError}</em> : <FormMessage />}
               </div>
             </FormItem>
           )} />
 
           <FormField control={form.control} name="description" render={({ field }) => (
-            <FormItem className="admin-form-field wide-field">
+            <FormItem className="relative col-span-2">
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea {...field} onChange={(e) => { field.onChange(e); patchProduct("description", e.target.value); }} />
@@ -324,10 +328,10 @@ function ProductEditor({
             </FormItem>
           )} />
 
-          <div className="product-options wide-field">
+          <div className="col-span-2 flex gap-3">
             {(["featured", "active"] as const).map((name) => (
               <FormField key={name} control={form.control} name={name} render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex items-center gap-2 min-w-[170px] rounded-lg border border-slate-200 px-3 py-2 cursor-pointer">
                   <FormLabel>
                     <FormControl>
                       <Checkbox className="admin-checkbox" checked={field.value}
@@ -343,8 +347,8 @@ function ProductEditor({
             ))}
           </div>
 
-          <div className="product-editor-actions">
-            <Button type="submit" disabled={uploading || saving} className="product-save-button">
+          <div className="col-span-2 flex justify-end pt-2">
+            <Button type="submit" disabled={uploading || saving}>
               {uploading ? "Envoi de l'image..." : saving ? "Enregistrement..." : "Enregistrer le produit"}
             </Button>
           </div>

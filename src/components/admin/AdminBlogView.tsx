@@ -178,67 +178,72 @@ export default function AdminBlogView() {
       </section>
 
       {editor.open && (
-        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setEditor({ open: false, post: null }); }}>
-          <div className="blog-editor-modal">
-            <button className="modal-x" onClick={() => setEditor({ open: false, post: null })}><X /></button>
-            <p>Gestion du contenu</p>
-            <h2>{editor.post ? "Modifier l'article" : "Nouvel article"}</h2>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setEditor({ open: false, post: null }); }}
+        >
+          <div className="relative flex flex-col gap-4 w-full max-w-[650px] max-h-[94vh] overflow-auto rounded-2xl bg-white p-6">
+            <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 text-slate-400" onClick={() => setEditor({ open: false, post: null })}>
+              <X />
+            </Button>
+            <div>
+              <p className="m-0 text-[10px] font-black tracking-widest uppercase text-orange-600">Gestion du contenu</p>
+              <h2 className="mt-1 mb-0 text-xl font-bold text-slate-700">{editor.post ? "Modifier l'article" : "Nouvel article"}</h2>
+            </div>
 
-            <form onSubmit={handleSubmit} className="blog-editor-form">
-              <label>
-                <span className="field-lbl">Titre <em>*</em></span>
-                <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Titre de l'article" required />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Titre *</span>
+                <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Titre de l'article" required className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" />
               </label>
 
-              <div className="blog-editor-2col">
-                <label>
-                  <span className="field-lbl">Slug <em>*</em></span>
-                  <input type="text" value={form.slug} onChange={(e) => { setSlugTouched(true); setForm((f) => ({ ...f, slug: slugify(e.target.value) })); }} placeholder="url-de-l-article" required />
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Slug *</span>
+                  <input type="text" value={form.slug} onChange={(e) => { setSlugTouched(true); setForm((f) => ({ ...f, slug: slugify(e.target.value) })); }} placeholder="url-de-l-article" required className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" />
                 </label>
-                <label>
-                  <span className="field-lbl">Categorie</span>
-                  <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Categorie</span>
+                  <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </label>
               </div>
 
-              <label>
-                <span className="field-lbl">Resume <em>*</em></span>
-                <textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} placeholder="Breve description (SEO et listes)" rows={2} required />
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Resume *</span>
+                <textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} placeholder="Breve description (SEO et listes)" rows={2} required className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100 min-h-[60px] resize-y" />
               </label>
 
-              <label>
-                <span className="field-lbl">Image de couverture</span>
-                <div className="blog-editor-cover">
-                  {form.coverImage && <img src={form.coverImage} alt="cover" className="blog-editor-cover-preview" />}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                    <input type="text" value={form.coverImage} onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))} placeholder="URL ou uploader" />
-                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCover(f); }} />
-                    <button type="button" className="upload-trigger" style={{ width: "fit-content" }} onClick={() => fileRef.current?.click()} disabled={uploading}>
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Image de couverture</span>
+                <div className="flex items-center gap-3">
+                  {form.coverImage && <img src={form.coverImage} alt="cover" className="h-12 w-16 rounded-lg object-cover" />}
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <input type="text" value={form.coverImage} onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))} placeholder="URL ou uploader" className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
+                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadCover(f); }} />
+                    <Button type="button" variant="outline" size="sm" className="w-fit" onClick={() => fileRef.current?.click()} disabled={uploading}>
                       <Upload size={13} /> {uploading ? "Upload..." : "Uploader"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </label>
 
-              <label>
-                <span className="field-lbl">Contenu <em>*</em> <span style={{ color: "#87a0ae", textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>— HTML accepte</span></span>
-                <textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} placeholder="<p>Contenu de l'article...</p>" rows={10} required />
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Contenu * <span className="normal-case tracking-normal font-normal text-slate-400">— HTML accepte</span></span>
+                <textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} placeholder="<p>Contenu de l'article...</p>" rows={10} required className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400 min-h-[200px] resize-y" />
               </label>
 
-              <label className="blog-editor-toggle-row">
-                <input type="checkbox" checked={form.published} onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))} />
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+                <input type="checkbox" checked={form.published} onChange={(e) => setForm((f) => ({ ...f, published: e.target.checked }))} className="h-4 w-4" />
                 Publier — {form.published ? "Visible sur le site" : "Brouillon"}
               </label>
 
-              <div className="product-editor-actions">
-                <button type="button" className="product-save-button" style={{ background: "#e4edf5", color: "#4a6275", boxShadow: "none", marginRight: 8 }} onClick={() => setEditor({ open: false, post: null })}>
-                  Annuler
-                </button>
-                <button type="submit" className="product-save-button" disabled={isPending}>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button type="button" variant="outline" onClick={() => setEditor({ open: false, post: null })}>Annuler</Button>
+                <Button type="submit" disabled={isPending}>
                   {isPending ? "Enregistrement..." : (editor.post ? "Mettre a jour" : "Creer")}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -254,16 +259,8 @@ export default function AdminBlogView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-              onClick={() => setDeleteConfirm(null)}
-            >
-              Annuler
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteConfirm(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
               onClick={() => deleteMutation.mutate(deleteConfirm!)}
               disabled={deleteMutation.isPending}
             >

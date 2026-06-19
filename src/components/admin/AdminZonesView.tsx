@@ -96,11 +96,16 @@ export default function AdminZonesView({ zones }: { zones: Zone[] }) {
       </section>
 
       {editTarget && (
-        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setEditTarget(null); }}>
-          <div style={{ position: "relative", width: "min(460px,100%)", borderRadius: 20, padding: 24, background: "#fff" }}>
-            <button className="modal-x" onClick={() => setEditTarget(null)}><X /></button>
-            <p style={{ margin: "0 0 4px", color: "var(--orange)", fontSize: 11, fontWeight: 900, letterSpacing: ".15em", textTransform: "uppercase" }}>Livraison</p>
-            <h2 style={{ margin: "0 0 18px" }}>Modifier la zone</h2>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setEditTarget(null); }}
+        >
+          <div className="relative w-full max-w-[460px] rounded-2xl bg-white p-6">
+            <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 text-slate-400" onClick={() => setEditTarget(null)}>
+              <X />
+            </Button>
+            <p className="m-0 mb-1 text-[10px] font-black tracking-widest uppercase text-orange-600">Livraison</p>
+            <h2 className="mt-0 mb-5 text-xl font-bold text-slate-700">Modifier la zone</h2>
             <ZoneEditForm
               zone={editTarget}
               saving={zonePatchMutation.isPending}
@@ -120,16 +125,8 @@ export default function AdminZonesView({ zones }: { zones: Zone[] }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-              onClick={() => setDeleteTarget(null)}
-            >
-              Annuler
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
               onClick={() => deleteTarget && zoneDeleteMutation.mutate({ id: deleteTarget.id })}
               disabled={zoneDeleteMutation.isPending}
             >
@@ -198,7 +195,7 @@ function ZoneEditForm({ zone, saving, onSave, onCancel }: {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSave)} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+      <form onSubmit={form.handleSubmit(onSave)} className="flex flex-col gap-3">
         <FormField control={form.control} name="name" render={({ field }) => (
           <FormItem className="admin-form-field">
             <FormLabel>Nom de zone</FormLabel>
@@ -223,15 +220,11 @@ function ZoneEditForm({ zone, saving, onSave, onCancel }: {
             <FormMessage />
           </FormItem>
         )} />
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 4 }}>
-          <button type="button" className="product-save-button"
-            style={{ background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-            onClick={onCancel}>
-            Annuler
-          </button>
-          <button type="submit" className="product-save-button" disabled={saving}>
+        <div className="flex gap-2 justify-end mt-1">
+          <Button type="button" variant="outline" onClick={onCancel}>Annuler</Button>
+          <Button type="submit" disabled={saving}>
             {saving ? "Enregistrement..." : "Mettre a jour"}
-          </button>
+          </Button>
         </div>
       </form>
     </Form>

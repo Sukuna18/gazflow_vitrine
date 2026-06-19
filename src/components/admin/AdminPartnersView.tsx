@@ -160,73 +160,76 @@ export default function AdminPartnersView() {
       </section>
 
       {editor.open && (
-        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setEditor({ open: false, partner: null }); }}>
-          <div className="blog-editor-modal">
-            <button className="modal-x" onClick={() => setEditor({ open: false, partner: null })}><X /></button>
-            <p>Gestion des partenaires</p>
-            <h2>{editor.partner ? "Modifier le partenaire" : "Nouveau partenaire"}</h2>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setEditor({ open: false, partner: null }); }}
+        >
+          <div className="relative w-full max-w-[550px] max-h-[94vh] overflow-auto rounded-2xl bg-white p-6">
+            <Button type="button" variant="ghost" size="icon" className="absolute right-3 top-3 text-slate-400" onClick={() => setEditor({ open: false, partner: null })}>
+              <X />
+            </Button>
+            <p className="m-0 mb-1 text-[10px] font-black tracking-widest uppercase text-orange-600">Gestion des partenaires</p>
+            <h2 className="mt-0 mb-4 text-xl font-bold text-slate-700">{editor.partner ? "Modifier le partenaire" : "Nouveau partenaire"}</h2>
 
-            <form onSubmit={handleSubmit} className="blog-editor-form">
-              <div className="blog-editor-2col">
-                <label>
-                  <span className="field-lbl">Nom <em>*</em></span>
-                  <input type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="ex: TotalEnergies" required />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Nom *</span>
+                  <input type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="ex: TotalEnergies" required className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
                 </label>
-                <label>
-                  <span className="field-lbl">Type <em>*</em></span>
-                  <input type="text" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} placeholder="ex: Energie" required />
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Type *</span>
+                  <input type="text" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))} placeholder="ex: Energie" required className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
                 </label>
               </div>
 
-              <label>
-                <span className="field-lbl">Logo <em>*</em></span>
-                <div className="blog-editor-cover">
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Logo *</span>
+                <div className="flex items-center gap-3">
                   {form.image && (
                     <div className={`partners-admin-logo-wrap ${form.theme}`} style={{ width: 90, height: 52, flexShrink: 0 }}>
                       <img src={form.image} alt="" className="partners-admin-logo" />
                     </div>
                   )}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                    <input type="text" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="URL ou uploader" required />
-                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(f); }} />
-                    <button type="button" className="upload-trigger" style={{ width: "fit-content" }} onClick={() => fileRef.current?.click()} disabled={uploading}>
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <input type="text" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="URL ou uploader" required className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
+                    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(f); }} />
+                    <Button type="button" variant="outline" size="sm" className="w-fit" onClick={() => fileRef.current?.click()} disabled={uploading}>
                       <Upload size={13} /> {uploading ? "Upload..." : "Uploader"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </label>
 
-              <label>
-                <span className="field-lbl">Lien (URL)</span>
-                <input type="url" value={form.href} onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))} placeholder="https://exemple.com" />
+              <label className="flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Lien (URL)</span>
+                <input type="url" value={form.href} onChange={(e) => setForm((f) => ({ ...f, href: e.target.value }))} placeholder="https://exemple.com" className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
               </label>
 
-              <div className="blog-editor-2col">
-                <label>
-                  <span className="field-lbl">Theme du logo</span>
-                  <select value={form.theme} onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value as "light" | "dark" }))}>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Theme du logo</span>
+                  <select value={form.theme} onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value as "light" | "dark" }))} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400">
                     <option value="light">Clair (fond blanc)</option>
                     <option value="dark">Sombre (fond fonce)</option>
                   </select>
                 </label>
-                <label>
-                  <span className="field-lbl">Ordre d'affichage</span>
-                  <input type="number" min={0} value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} />
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Ordre d&apos;affichage</span>
+                  <input type="number" min={0} value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
                 </label>
               </div>
 
-              <label className="blog-editor-toggle-row">
-                <input type="checkbox" checked={form.active} onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))} />
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+                <input type="checkbox" checked={form.active} onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))} className="h-4 w-4" />
                 Actif — {form.active ? "Visible sur le site" : "Masque"}
               </label>
 
-              <div className="product-editor-actions">
-                <button type="button" className="product-save-button" style={{ background: "#e4edf5", color: "#4a6275", boxShadow: "none", marginRight: 8 }} onClick={() => setEditor({ open: false, partner: null })}>
-                  Annuler
-                </button>
-                <button type="submit" className="product-save-button" disabled={isPending}>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button type="button" variant="outline" onClick={() => setEditor({ open: false, partner: null })}>Annuler</Button>
+                <Button type="submit" disabled={isPending}>
                   {isPending ? "Enregistrement..." : (editor.partner ? "Mettre a jour" : "Ajouter")}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -242,16 +245,8 @@ export default function AdminPartnersView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-              onClick={() => setDeleteConfirm(null)}
-            >
-              Annuler
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteConfirm(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
               onClick={() => deleteMutation.mutate(deleteConfirm!)}
               disabled={deleteMutation.isPending}
             >

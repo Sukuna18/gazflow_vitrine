@@ -93,16 +93,8 @@ export default function AdminAdminsView({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
-              onClick={() => setDeleteTarget(null)}
-            >
-              Annuler
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTarget(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              className="product-save-button"
-              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
               onClick={() => deleteTarget && adminDeleteMutation.mutate({ id: deleteTarget.id })}
               disabled={adminDeleteMutation.isPending}
             >
