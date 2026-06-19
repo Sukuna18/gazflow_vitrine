@@ -4,6 +4,13 @@ import { useRef, useState } from "react";
 import { Edit2, GripVertical, Plus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -207,13 +214,18 @@ export default function AdminPartnersView() {
               </label>
 
               <div className="grid grid-cols-2 gap-3">
-                <label className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Theme du logo</span>
-                  <select value={form.theme} onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value as "light" | "dark" }))} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400">
-                    <option value="light">Clair (fond blanc)</option>
-                    <option value="dark">Sombre (fond fonce)</option>
-                  </select>
-                </label>
+                  <Select value={form.theme} onValueChange={(v) => setForm((f) => ({ ...f, theme: v as "light" | "dark" }))}>
+                    <SelectTrigger className="h-auto w-full bg-slate-50 py-2">
+                      <SelectValue>{(value) => (value === "dark" ? "Sombre (fond fonce)" : "Clair (fond blanc)")}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">Clair (fond blanc)</SelectItem>
+                      <SelectItem value="dark">Sombre (fond fonce)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <label className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Ordre d&apos;affichage</span>
                   <input type="number" min={0} value={form.sortOrder} onChange={(e) => setForm((f) => ({ ...f, sortOrder: Number(e.target.value) }))} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-sky-400" />
