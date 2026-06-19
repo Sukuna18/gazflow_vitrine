@@ -39,6 +39,8 @@ services:
       PUBLIC_UPLOAD_PATH: /uploads/products
       BLOG_UPLOAD_DIR: /app/public/uploads/blog
       BLOG_PUBLIC_UPLOAD_PATH: /uploads/blog
+      PARTNERS_UPLOAD_DIR: /app/public/uploads/partners
+      PARTNERS_PUBLIC_UPLOAD_PATH: /uploads/partners
       NODE_ENV: production
       MAIL_HOST: ${MAIL_HOST:-smtp.hostinger.com}
       MAIL_PORT: ${MAIL_PORT:-465}
@@ -48,6 +50,7 @@ services:
     volumes:
       - media_products:/app/public/uploads/products
       - media_blog:/app/public/uploads/blog
+      - media_partners:/app/public/uploads/partners
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +69,7 @@ services:
       - caddy_config:/config
       - media_products:/srv/uploads/products:ro
       - media_blog:/srv/uploads/blog:ro
+      - media_partners:/srv/uploads/partners:ro
     depends_on:
       - frontend
 
@@ -73,5 +77,6 @@ volumes:
   postgres_data:
   media_products:
   media_blog:
+  media_partners:
   caddy_data:
   caddy_config:

@@ -25,12 +25,17 @@ export const metadata: Metadata = {
   description:
     "Top Energies : vente et livraison de gaz butane, bouteilles et accessoires a domicile a Dakar et banlieue. Commandez en ligne, paiement a la livraison.",
   keywords: [
+    "vente gaz Dakar",
+    "livraison gaz Dakar",
+    "vente bouteille gaz Dakar",
+    "gaz Dakar",
+    "vente gaz",
     "gaz butane Dakar",
     "livraison gaz Dakar",
     "bouteille gaz",
     "gaz domestique Senegal",
     "vente gaz Dakar",
-    "gaz butane",
+    "gaz",
     "livraison gaz rapide",
     "bouteille gaz 6kg",
     "bouteille gaz 12kg",

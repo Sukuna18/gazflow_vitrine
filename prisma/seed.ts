@@ -75,6 +75,14 @@ async function main() {
     },
   });
 
+  for (const [name, type, image, href, theme, sortOrder] of [
+    ["TotalEnergies", "Energie", "/images/partners/totalenergies.png", "https://totalenergies.com/", "light", 0],
+    ["Terrou-Bi", "Hotellerie", "/images/partners/terrou-bi.svg", "https://terroubi.com/fr/", "dark", 1],
+  ] as const) {
+    const existing = await prisma.partner.findFirst({ where: { name } });
+    if (!existing) await prisma.partner.create({ data: { name, type, image, href, theme, active: true, sortOrder } });
+  }
+
   const email = (process.env.ADMIN_EMAIL ?? "admin@topenergies.sn").trim().toLowerCase();
   await prisma.admin.upsert({
     where: { email },

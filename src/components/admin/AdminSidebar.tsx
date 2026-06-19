@@ -6,6 +6,7 @@ import {
   BookOpen,
   Box,
   Globe2,
+  Handshake,
   LayoutDashboard,
   LogOut,
   MapPinned,
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/products", label: "Produits", icon: Box },
   { href: "/admin/zones", label: "Zones", icon: MapPinned },
   { href: "/admin/blog", label: "Blog", icon: BookOpen },
+  { href: "/admin/partners", label: "Partenaires", icon: Handshake },
   { href: "/admin/settings", label: "Site", icon: Globe2 },
   { href: "/admin/admins", label: "Administrateurs", icon: Users },
 ];

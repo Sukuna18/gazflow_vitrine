@@ -12,10 +12,11 @@ import { toastMessage } from "@/lib/toast";
 type Product = { id: number; name: string; category: string; description: string; price: number; stock: number; weight: string | null; image: string; featured: boolean };
 type Zone = { id: number; name: string; fee: number; eta: string };
 type Settings = { phoneDisplay: string; phoneHref: string; address: string; heroEyebrow: string; heroTitle: string; heroAccent: string; heroDescription: string; announcementOne: string; announcementTwo: string; announcementThree: string; contactTitle: string; contactDescription: string };
+type Partner = { id: number; name: string; type: string; image: string; href: string; theme: string };
 type Cart = Record<number, number>;
 const CART_STORAGE_KEY = "top-energies-cart";
 
-export default function Storefront({ products, zones, settings }: { products: Product[]; zones: Zone[]; settings: Settings }) {
+export default function Storefront({ products, zones, settings, partners }: { products: Product[]; zones: Zone[]; settings: Settings; partners: Partner[] }) {
   const [cart, setCart] = useState<Cart>({});
   const [cartReady, setCartReady] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -180,7 +181,7 @@ export default function Storefront({ products, zones, settings }: { products: Pr
       </motion.section>
 
       <Testimonials />
-      <PartnersMarquee />
+      <PartnersMarquee partners={partners} />
       <PromoMarquee />
 
       <section className="cta-section" id="contact"><p className="eyebrow orange">Contact commercial</p><h2>{settings.contactTitle}</h2><p>{settings.contactDescription}</p><div className="commercial-details"><span><MapPin size={16} /> {settings.address}</span><a href={`tel:${settings.phoneHref}`}><Phone size={16} /> {settings.phoneDisplay}</a></div><div><a className="primary-button" href="#catalogue">Voir les produits <ArrowRight size={17} /></a><a className="secondary-button" href={`tel:${settings.phoneHref}`}><Phone size={16} /> Appeler le service commercial</a></div></section>
@@ -207,11 +208,7 @@ function PromoMarquee() {
   return <section className="promo-marquee" aria-label="Informations commerciales"><div>{[...promoItems, ...promoItems].map((item, index) => <span key={`${item}-${index}`}><i /><b>{item}</b></span>)}</div></section>;
 }
 
-const partners = [
-  { name: "TotalEnergies", type: "Energie", image: "/images/partners/totalenergies.png", href: "https://totalenergies.com/", theme: "light" },
-  { name: "Terrou-Bi", type: "Hotellerie", image: "/images/partners/terrou-bi.svg", href: "https://terroubi.com/fr/", theme: "dark" },
-];
-function PartnersMarquee() {
+function PartnersMarquee({ partners }: { partners: Partner[] }) {
   const repeatedPartners = Array.from({ length: 5 }, () => partners).flat();
   return <section className="partners-section"><div className="partners-heading"><p className="eyebrow orange">Ils nous font confiance</p><span>Partenaires & collaborations</span></div><div className="partners-window"><div className="partners-track">{repeatedPartners.map((partner, index) => <a className={`partner-logo ${partner.theme}`} href={partner.href} target="_blank" rel="noreferrer" key={`${partner.name}-${index}`}><Image src={partner.image} alt={`Logo ${partner.name}`} width={190} height={72} sizes="190px" /><small>{partner.type}</small></a>)}</div></div></section>;
 }

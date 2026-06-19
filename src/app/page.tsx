@@ -78,10 +78,11 @@ function buildJsonLd(settings: Settings, minPrice: number, maxPrice: number) {
 }
 
 export default async function Home() {
-  const [products, zones, settings] = await Promise.all([
+  const [products, zones, settings, partners] = await Promise.all([
     prisma.product.findMany({ where: { active: true }, orderBy: [{ featured: "desc" }, { id: "desc" }] }),
     prisma.deliveryZone.findMany({ orderBy: { fee: "asc" } }),
     prisma.siteSettings.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } }),
+    prisma.partner.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
   ]);
 
   const prices = products.map((p) => p.price);
@@ -95,7 +96,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Storefront products={products} zones={zones} settings={settings} />
+      <Storefront products={products} zones={zones} settings={settings} partners={partners} />
     </>
   );
 }
