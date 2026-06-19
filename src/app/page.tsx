@@ -44,12 +44,24 @@ const localBusinessJsonLd = {
     itemListElement: [
       {
         "@type": "Offer",
+        priceCurrency: "XOF",
+        lowPrice: "4500",
+        highPrice: "8500",
+        availability: "https://schema.org/InStock",
         itemOffered: {
           "@type": "Product",
           name: "Gaz butane",
           description:
             "Bouteilles de gaz butane livrees a domicile a Dakar et banlieue",
           category: "Energie domestique",
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "XOF",
+            lowPrice: "4500",
+            highPrice: "8500",
+            offerCount: "3",
+            availability: "https://schema.org/InStock",
+          },
         },
       },
       {
