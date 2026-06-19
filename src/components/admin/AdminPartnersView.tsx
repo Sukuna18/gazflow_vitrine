@@ -217,7 +217,7 @@ export default function AdminPartnersView() {
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Theme du logo</span>
                   <Select value={form.theme} onValueChange={(v) => setForm((f) => ({ ...f, theme: v as "light" | "dark" }))}>
-                    <SelectTrigger className="h-auto w-full bg-slate-50 py-2">
+                    <SelectTrigger className="!h-auto w-full bg-slate-50 px-3 py-2">
                       <SelectValue>{(value) => (value === "dark" ? "Sombre (fond fonce)" : "Clair (fond blanc)")}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>

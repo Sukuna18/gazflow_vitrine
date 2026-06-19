@@ -212,7 +212,7 @@ export default function AdminBlogView() {
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Categorie</span>
                   <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v as string }))}>
-                    <SelectTrigger className="h-auto w-full bg-slate-50 py-2">
+                    <SelectTrigger className="!h-auto w-full bg-slate-50 px-3 py-2">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
