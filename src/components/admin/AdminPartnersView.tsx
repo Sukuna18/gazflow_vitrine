@@ -3,6 +3,16 @@
 import { useRef, useState } from "react";
 import { Edit2, GripVertical, Plus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useFetchOne, useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
 
@@ -223,22 +233,33 @@ export default function AdminPartnersView() {
         </div>
       )}
 
-      {deleteConfirm !== null && (
-        <div className="admin-order-modal">
-          <div style={{ position: "relative", width: "min(360px,100%)", borderRadius: 15, padding: 24, background: "#fff" }}>
-            <p style={{ margin: "0 0 6px", color: "var(--orange)", fontSize: 11, fontWeight: 900 }}>Confirmation</p>
-            <h2 style={{ margin: "0 0 18px" }}>Supprimer ce partenaire ?</h2>
-            <small style={{ display: "block", marginBottom: 20, color: "#829590" }}>Cette action est irreversible.</small>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setDeleteConfirm(null)}>Annuler</button>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
-                onClick={() => deleteMutation.mutate(deleteConfirm!)} disabled={deleteMutation.isPending}>
-                {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={deleteConfirm !== null} onOpenChange={(open) => { if (!open) setDeleteConfirm(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce partenaire ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="product-save-button"
+              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
+              onClick={() => setDeleteConfirm(null)}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="product-save-button"
+              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
+              onClick={() => deleteMutation.mutate(deleteConfirm!)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

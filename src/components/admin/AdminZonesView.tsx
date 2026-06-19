@@ -11,6 +11,16 @@ import { useMutationApi } from "@/hooks/useApi";
 import { toastMessage } from "@/lib/toast";
 import { zoneSchema } from "@/lib/validations/zone";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -101,22 +111,33 @@ export default function AdminZonesView({ zones }: { zones: Zone[] }) {
         </div>
       )}
 
-      {deleteTarget && (
-        <div className="admin-order-modal" onClick={(e) => { if (e.target === e.currentTarget) setDeleteTarget(null); }}>
-          <div style={{ position: "relative", width: "min(360px,100%)", borderRadius: 15, padding: 24, background: "#fff" }}>
-            <p style={{ margin: "0 0 6px", color: "var(--orange)", fontSize: 11, fontWeight: 900 }}>Confirmation</p>
-            <h2 style={{ margin: "0 0 8px" }}>Supprimer cette zone ?</h2>
-            <small style={{ display: "block", marginBottom: 20, color: "#829590" }}><b>{deleteTarget.name}</b> sera definitivement supprimee. Impossible si des commandes y sont rattachees.</small>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setDeleteTarget(null)}>Annuler</button>
-              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
-                onClick={() => zoneDeleteMutation.mutate({ id: deleteTarget.id })} disabled={zoneDeleteMutation.isPending}>
-                {zoneDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette zone ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <b>{deleteTarget?.name}</b> sera definitivement supprimee. Impossible si des commandes y sont rattachees.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="product-save-button"
+              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }}
+              onClick={() => setDeleteTarget(null)}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="product-save-button"
+              style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
+              onClick={() => deleteTarget && zoneDeleteMutation.mutate({ id: deleteTarget.id })}
+              disabled={zoneDeleteMutation.isPending}
+            >
+              {zoneDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
