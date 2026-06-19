@@ -175,20 +175,18 @@ export default function AdminBlogView() {
             <h2>{editor.post ? "Modifier l'article" : "Nouvel article"}</h2>
 
             <form onSubmit={handleSubmit} className="blog-editor-form">
-              <div className="blog-editor-row">
-                <label>
-                  Titre <span>*</span>
-                  <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Titre de l'article" required />
-                </label>
-              </div>
+              <label>
+                <span className="field-lbl">Titre <em>*</em></span>
+                <input type="text" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Titre de l'article" required />
+              </label>
 
               <div className="blog-editor-2col">
                 <label>
-                  Slug <span>*</span>
+                  <span className="field-lbl">Slug <em>*</em></span>
                   <input type="text" value={form.slug} onChange={(e) => { setSlugTouched(true); setForm((f) => ({ ...f, slug: slugify(e.target.value) })); }} placeholder="url-de-l-article" required />
                 </label>
                 <label>
-                  Categorie
+                  <span className="field-lbl">Categorie</span>
                   <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
                     {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -196,12 +194,12 @@ export default function AdminBlogView() {
               </div>
 
               <label>
-                Resume <span>*</span>
+                <span className="field-lbl">Resume <em>*</em></span>
                 <textarea value={form.excerpt} onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))} placeholder="Breve description (SEO et listes)" rows={2} required />
               </label>
 
               <label>
-                Image de couverture
+                <span className="field-lbl">Image de couverture</span>
                 <div className="blog-editor-cover">
                   {form.coverImage && <img src={form.coverImage} alt="cover" className="blog-editor-cover-preview" />}
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
@@ -215,7 +213,7 @@ export default function AdminBlogView() {
               </label>
 
               <label>
-                Contenu <span>*</span> <em style={{ color: "#87a0ae", fontStyle: "normal", fontSize: 9 }}>HTML accepte</em>
+                <span className="field-lbl">Contenu <em>*</em> <span style={{ color: "#87a0ae", textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>— HTML accepte</span></span>
                 <textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))} placeholder="<p>Contenu de l'article...</p>" rows={10} required />
               </label>
 
