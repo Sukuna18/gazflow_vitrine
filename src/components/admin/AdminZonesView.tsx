@@ -108,7 +108,7 @@ export default function AdminZonesView({ zones }: { zones: Zone[] }) {
             <h2 style={{ margin: "0 0 8px" }}>Supprimer cette zone ?</h2>
             <small style={{ display: "block", marginBottom: 20, color: "#829590" }}><b>{deleteTarget.name}</b> sera definitivement supprimee. Impossible si des commandes y sont rattachees.</small>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <Button variant="outline" onClick={() => setDeleteTarget(null)}>Annuler</Button>
+              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setDeleteTarget(null)}>Annuler</button>
               <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
                 onClick={() => zoneDeleteMutation.mutate({ id: deleteTarget.id })} disabled={zoneDeleteMutation.isPending}>
                 {zoneDeleteMutation.isPending ? "Suppression..." : "Supprimer"}

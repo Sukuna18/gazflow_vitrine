@@ -242,7 +242,7 @@ export default function AdminBlogView() {
             <h2 style={{ margin: "0 0 18px" }}>Supprimer cet article ?</h2>
             <small style={{ display: "block", marginBottom: 20, color: "#829590" }}>Cette action est irreversible.</small>
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Annuler</Button>
+              <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0, background: "#e4edf5", color: "#4a6275", boxShadow: "none" }} onClick={() => setDeleteConfirm(null)}>Annuler</button>
               <button className="product-save-button" style={{ height: 36, borderRadius: 9, padding: "0 15px", border: 0 }}
                 onClick={() => deleteMutation.mutate(deleteConfirm!)} disabled={deleteMutation.isPending}>
                 {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
