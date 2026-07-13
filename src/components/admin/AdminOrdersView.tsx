@@ -9,7 +9,7 @@ import { OrdersTable, OrderDetails } from "./AdminDashboardView";
 type Status = "NEW" | "CONFIRMED" | "PREPARING" | "DELIVERING" | "DELIVERED" | "CANCELLED";
 type Order = {
   id: number; reference: string; customerName: string; phone: string;
-  address: string; notes: string | null; status: Status; total: number;
+  address: string; notes: string | null; status: Status; subtotal: number; deliveryFee: number; total: number;
   createdAt: Date | string; zone: { name: string };
   items: { id: number; quantity: number; unitPrice: number; product: { name: string } }[];
 };

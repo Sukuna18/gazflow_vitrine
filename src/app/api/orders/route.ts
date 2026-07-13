@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendOrderNotification } from "@/lib/mail";
+import { vehicleDeliveryExtraTotal } from "@/lib/delivery";
 
 type Payload = {
   customerName?: string;
@@ -34,6 +35,9 @@ export async function POST(request: Request) {
     if (product.stock < quantity) throw new Error(`Stock insuffisant pour ${product.name}.`);
     return sum + product.price * quantity;
   }, 0);
+  const vehicleDeliveryFee = vehicleDeliveryExtraTotal(products.map((product) => ({ ...product, quantity: quantities.get(product.id) ?? 0 })));
+  const deliveryFee = zone.fee + vehicleDeliveryFee;
+  const total = subtotal + deliveryFee;
 
   try {
     const order = await prisma.$transaction(async (tx) => {
@@ -51,8 +55,8 @@ export async function POST(request: Request) {
           notes: body.notes?.trim(),
           zoneId: zone.id,
           subtotal,
-          deliveryFee: zone.fee,
-          total: subtotal + zone.fee,
+          deliveryFee,
+          total,
           items: { create: products.map((product) => ({ productId: product.id, quantity: quantities.get(product.id) ?? 0, unitPrice: product.price })) },
         },
       });
@@ -72,8 +76,10 @@ export async function POST(request: Request) {
         unitPrice: p.price,
       })),
       subtotal,
-      deliveryFee: zone.fee,
-      total: subtotal + zone.fee,
+      zoneDeliveryFee: zone.fee,
+      vehicleDeliveryFee,
+      deliveryFee,
+      total,
     }).catch((err) => console.error("[mail] order notification failed:", err));
 
     return NextResponse.json({ reference: order.reference, total: order.total }, { status: 201 });

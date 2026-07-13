@@ -1,15 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import ServicesSection from "@/components/storefront/Services";
 import { money } from "@/lib/format";
 import { toastMessage } from "@/lib/toast";
+import { vehicleDeliveryExtraTotal } from "@/lib/delivery";
 
-type Product = { id: number; name: string; category: string; description: string; price: number; stock: number; weight: string | null; image: string; featured: boolean };
+type Product = { id: number; slug: string; name: string; category: string; description: string; price: number; stock: number; weight: string | null; image: string; featured: boolean };
 type Zone = { id: number; name: string; fee: number; eta: string };
 type Settings = { phoneDisplay: string; phoneHref: string; address: string; heroEyebrow: string; heroTitle: string; heroAccent: string; heroDescription: string; announcementOne: string; announcementTwo: string; announcementThree: string; contactTitle: string; contactDescription: string };
 type Partner = { id: number; name: string; type: string; image: string; href: string; theme: string };
@@ -35,7 +36,9 @@ export default function Storefront({ products, zones, settings, partners }: { pr
   const count = lines.reduce((sum, line) => sum + line.quantity, 0);
   const subtotal = lines.reduce((sum, line) => sum + line.quantity * line.price, 0);
   const zone = zones.find((item) => item.id === form.zoneId);
-  const total = subtotal + (zone?.fee ?? 0);
+  const zoneDeliveryFee = zone?.fee ?? 0;
+  const vehicleDeliveryFee = vehicleDeliveryExtraTotal(lines);
+  const total = subtotal + zoneDeliveryFee + vehicleDeliveryFee;
 
   useEffect(() => {
     if (window.sessionStorage.getItem("top-energies-intro-seen")) {
@@ -139,7 +142,7 @@ export default function Storefront({ products, zones, settings, partners }: { pr
           <div className="hero-actions"><a className="primary-button" href="#catalogue">Commander maintenant <ArrowRight size={17} /></a><a className="secondary-button" href="#process">Comment ca marche <ChevronDown size={16} /></a></div>
           <div className="hero-trust"><span><ShieldCheck size={17} /> Produits controles</span><span><Clock3 size={17} /> Livraison rapide</span></div>
         </div>
-        <HeroProductSwipe products={products} />
+        <HeroProductShowcase />
       </section>
 
       <motion.section className="benefit-strip" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: .6 }}>
@@ -188,7 +191,7 @@ export default function Storefront({ products, zones, settings, partners }: { pr
       <footer><a href="#" className="brand"><BrandLogo /></a><p>Votre energie, livree simplement.</p><small>{settings.address} · {settings.phoneDisplay} · © {year} Top Energies. Tous droits reserves. <a href="/admin">Administration</a></small></footer>
 
       {cartOpen ? <CartDrawer lines={lines} subtotal={subtotal} close={() => setCartOpen(false)} quantity={quantity} checkout={() => { setCartOpen(false); setCheckout(true); }} /> : null}
-      {checkout ? <CheckoutModal form={form} setForm={setForm} zones={zones} total={total} close={() => { setCheckout(false); setResult(null); setError(""); }} submit={submit} sending={sending} error={error} result={result} /> : null}
+      {checkout ? <CheckoutModal form={form} setForm={setForm} zones={zones} subtotal={subtotal} zoneDeliveryFee={zoneDeliveryFee} vehicleDeliveryFee={vehicleDeliveryFee} total={total} close={() => { setCheckout(false); setResult(null); setError(""); }} submit={submit} sending={sending} error={error} result={result} /> : null}
     </main>
   );
 }
@@ -229,37 +232,25 @@ function DeliveryIllustration() {
   return <div className="delivery-scene"><div className="delivery-sun" /><div className="delivery-road"><i /><i /><i /><i /></div><div className="mini-truck"><Truck size={28} /></div><div className="mini-home"><Home size={28} /><span><CheckCircle2 size={14} /></span></div></div>;
 }
 
-function HeroProductSwipe({ products }: { products: Product[] }) {
-  const slides = products.filter((product) => product.category === "Bouteilles").slice(0, 4);
-  const touchStart = useRef<number | null>(null);
-  const [paused, setPaused] = useState(false);
-  const [active, setActive] = useState(0);
+const heroShowcaseItems = [
+  { label: "Bouteilles de gaz", image: "/images/gazflow/cylinder-range-collection.png", className: "hero-main-product" },
+  { label: "Accessoires gaz", image: "/images/gazflow/gas-accessories-catalog-clean.png", className: "hero-side-product top" },
+  { label: "Rechauds", image: "/images/gazflow/cooktop-top-view.png", className: "hero-side-product bottom" },
+];
 
-  const slide = useCallback((direction: 1 | -1) => {
-    setActive((current) => (current + direction + slides.length) % slides.length);
-  }, [slides.length]);
-
-  useEffect(() => {
-    setActive(0);
-  }, [products.length]);
-
-  useEffect(() => {
-    if (paused || slides.length < 2) return;
-    const timer = window.setInterval(() => slide(1), 3200);
-    return () => window.clearInterval(timer);
-  }, [paused, slide, slides.length]);
-
-  const product = slides[active];
-  if (!product) return null;
-
-  return <div className="hero-visual hero-swipe" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onTouchStart={(event) => { setPaused(true); touchStart.current = event.touches[0].clientX; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0].clientX; if (start !== null && Math.abs(start - end) > 42) slide(start > end ? 1 : -1); touchStart.current = null; setPaused(false); }}>
+function HeroProductShowcase() {
+  return <div className="hero-visual hero-showcase">
     <div className="hero-blob" />
     <div className="hero-energy energy-a" /><div className="hero-energy energy-b" /><div className="hero-energy energy-c" />
     <div className="hero-circle circle-one" />
     <div className="hero-circle circle-two" />
-    <div className="hero-product-frame"><Image key={product.id} className="hero-product" src={product.image} alt={product.name} width={520} height={620} priority={active === 0} unoptimized /></div>
+    <div className="hero-product-gallery" aria-label="Apercu des familles de produits vendues">
+      {heroShowcaseItems.map((item, index) => <article className={`hero-showcase-item ${item.className}`} key={item.label}>
+        <div><Image src={item.image} alt={item.label} fill sizes={index === 0 ? "(max-width: 950px) 70vw, 360px" : "(max-width: 950px) 30vw, 190px"} className="object-contain" priority={index === 0} /></div>
+        <span>{item.label}</span>
+      </article>)}
+    </div>
     <div className="floating-card delivery-card"><span><Truck size={18} /></span><div><b>Livraison express</b><small>Chez vous rapidement</small></div></div>
-    <div className="floating-card rating-card"><p>{product.category}</p><b>{product.name}</b><small>{money(product.price)}</small></div>
   </div>;
 }
 
@@ -276,6 +267,6 @@ function CartDrawer({ lines, subtotal, close, quantity, checkout }: { lines: (Pr
   return <div className="overlay"><aside className="cart-drawer"><div className="drawer-title"><div><p>Votre panier</p><h3>{lines.length ? `${lines.length} produit${lines.length > 1 ? "s" : ""}` : "Panier vide"}</h3></div><button onClick={close}><X /></button></div><div className="cart-lines">{lines.length ? lines.map((line) => <div className="cart-line" key={line.id}><div className="mini-image"><Image src={line.image} alt="" fill className="object-contain" sizes="80px" unoptimized /></div><div><b>{line.name}</b><small>{money(line.price)}</small><div className="quantity small"><button onClick={() => quantity(line.id, line.quantity - 1)}><Minus size={12} /></button><b>{line.quantity}</b><button onClick={() => quantity(line.id, line.quantity + 1)}><Plus size={12} /></button><button className="trash" onClick={() => quantity(line.id, 0)}><Trash2 size={13} /></button></div></div></div>) : <div className="empty-cart"><ShoppingBag size={35} /><p>Votre panier attend sa premiere bouteille.</p><button onClick={close}>Voir le catalogue</button></div>}</div>{lines.length ? <div className="drawer-footer"><div><span>Sous-total</span><b>{money(subtotal)}</b></div><small>Les frais de livraison sont calcules selon votre zone.</small><button className="primary-button wide" onClick={checkout}>Continuer <ArrowRight size={16} /></button></div> : null}</aside></div>;
 }
 
-function CheckoutModal({ form, setForm, zones, total, close, submit, sending, error, result }: { form: { customerName: string; phone: string; address: string; notes: string; zoneId: number }; setForm: React.Dispatch<React.SetStateAction<typeof form>>; zones: Zone[]; total: number; close: () => void; submit: (event: React.FormEvent<HTMLFormElement>) => void; sending: boolean; error: string; result: { reference: string; total: number } | null }) {
-  return <div className="overlay modal-overlay"><div className="checkout-modal"><button className="modal-close" onClick={close}><X /></button>{result ? <div className="success"><span><Check /></span><p>Commande confirmee</p><h3>Merci pour votre confiance.</h3><small>Reference: <b>{result.reference}</b></small><strong>{money(result.total)}</strong><p>Notre equipe vous appellera pour confirmer la livraison.</p><button className="primary-button wide" onClick={close}>Fermer</button></div> : <><p className="product-category">Derniere etape</p><h3>Informations de livraison</h3><form onSubmit={submit}><label>Nom complet<input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Votre nom" /></label><label>Telephone<input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+221 77 000 00 00" /></label><label>Adresse<textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Quartier, rue et point de repere" /></label><label>Zone de livraison<select value={form.zoneId} onChange={(e) => setForm({ ...form, zoneId: Number(e.target.value) })}>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name} - {money(zone.fee)}</option>)}</select></label><label>Note (optionnel)<textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Precision utile pour le livreur" /></label>{error ? <p className="form-error">{error}</p> : null}<div className="checkout-total"><span>Total a payer a la livraison</span><b>{money(total)}</b></div><button disabled={sending} className="primary-button wide">{sending ? "Validation..." : "Confirmer ma commande"} <ArrowRight size={16} /></button></form></>}</div></div>;
+function CheckoutModal({ form, setForm, zones, subtotal, zoneDeliveryFee, vehicleDeliveryFee, total, close, submit, sending, error, result }: { form: { customerName: string; phone: string; address: string; notes: string; zoneId: number }; setForm: React.Dispatch<React.SetStateAction<typeof form>>; zones: Zone[]; subtotal: number; zoneDeliveryFee: number; vehicleDeliveryFee: number; total: number; close: () => void; submit: (event: React.FormEvent<HTMLFormElement>) => void; sending: boolean; error: string; result: { reference: string; total: number } | null }) {
+  return <div className="overlay modal-overlay"><div className="checkout-modal"><button className="modal-close" onClick={close}><X /></button>{result ? <div className="success"><span><Check /></span><p>Commande confirmee</p><h3>Merci pour votre confiance.</h3><small>Reference: <b>{result.reference}</b></small><strong>{money(result.total)}</strong><p>Notre equipe vous appellera pour confirmer la livraison.</p><button className="primary-button wide" onClick={close}>Fermer</button></div> : <><p className="product-category">Derniere etape</p><h3>Informations de livraison</h3><form onSubmit={submit}><label>Nom complet<input required value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Votre nom" /></label><label>Telephone<input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+221 77 000 00 00" /></label><label>Adresse<textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Quartier, rue et point de repere" /></label><label>Zone de livraison<select value={form.zoneId} onChange={(e) => setForm({ ...form, zoneId: Number(e.target.value) })}>{zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name} - {money(zone.fee)}</option>)}</select></label><label>Note (optionnel)<textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Precision utile pour le livreur" /></label>{error ? <p className="form-error">{error}</p> : null}<div className="checkout-total"><div><span>Sous-total produits</span><b>{money(subtotal)}</b></div><div><span>Livraison zone</span><b>{money(zoneDeliveryFee)}</b></div>{vehicleDeliveryFee ? <div><span>Supplement vehicule</span><b>{money(vehicleDeliveryFee)}</b></div> : null}<div><span>Total a payer a la livraison</span><b>{money(total)}</b></div></div><button disabled={sending} className="primary-button wide">{sending ? "Validation..." : "Confirmer ma commande"} <ArrowRight size={16} /></button></form></>}</div></div>;
 }

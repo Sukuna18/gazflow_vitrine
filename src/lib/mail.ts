@@ -19,6 +19,8 @@ type OrderEmailData = {
   zoneName: string;
   items: { name: string; quantity: number; unitPrice: number }[];
   subtotal: number;
+  zoneDeliveryFee?: number;
+  vehicleDeliveryFee?: number;
   deliveryFee: number;
   total: number;
 };
@@ -28,6 +30,8 @@ function formatFcfa(amount: number) {
 }
 
 function orderEmailHtml(data: OrderEmailData): string {
+  const zoneDeliveryFee = data.zoneDeliveryFee ?? data.deliveryFee;
+  const vehicleDeliveryFee = data.vehicleDeliveryFee ?? 0;
   const itemsRows = data.items
     .map(
       (item) => `
@@ -113,8 +117,16 @@ function orderEmailHtml(data: OrderEmailData): string {
         </tr>
         <tr>
           <td style="padding:5px 0;font-size:14px;color:#555">Livraison (${data.zoneName})</td>
-          <td style="padding:5px 0;font-size:14px;color:#1a1a1a;text-align:right">${formatFcfa(data.deliveryFee)}</td>
+          <td style="padding:5px 0;font-size:14px;color:#1a1a1a;text-align:right">${formatFcfa(zoneDeliveryFee)}</td>
         </tr>
+        ${
+          vehicleDeliveryFee
+            ? `<tr>
+          <td style="padding:5px 0;font-size:14px;color:#555">Supplement vehicule 12kg / 32kg / 38kg</td>
+          <td style="padding:5px 0;font-size:14px;color:#1a1a1a;text-align:right">${formatFcfa(vehicleDeliveryFee)}</td>
+        </tr>`
+            : ""
+        }
         <tr>
           <td style="padding:12px 0 5px;font-size:16px;font-weight:700;color:#0f2d52;border-top:2px solid #0f2d52">TOTAL</td>
           <td style="padding:12px 0 5px;font-size:16px;font-weight:700;color:#0f2d52;text-align:right;border-top:2px solid #0f2d52">${formatFcfa(data.total)}</td>
