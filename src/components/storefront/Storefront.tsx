@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Check, CheckCircle2, ChevronDown, Clock3, Home, MapPin, Menu, Minus, PackageCheck, Phone, Plus, Quote, ShieldCheck, ShoppingBag, Star, Trash2, Truck, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
@@ -232,25 +232,38 @@ function DeliveryIllustration() {
   return <div className="delivery-scene"><div className="delivery-sun" /><div className="delivery-road"><i /><i /><i /><i /></div><div className="mini-truck"><Truck size={28} /></div><div className="mini-home"><Home size={28} /><span><CheckCircle2 size={14} /></span></div></div>;
 }
 
-const heroShowcaseItems = [
-  { label: "Bouteilles de gaz", image: "/images/gazflow/cylinder-range-collection.png", className: "hero-main-product" },
-  { label: "Accessoires gaz", image: "/images/gazflow/gas-accessories-catalog-clean.png", className: "hero-side-product top" },
-  { label: "Rechauds", image: "/images/gazflow/cooktop-top-view.png", className: "hero-side-product bottom" },
+const heroSlides = [
+  { label: "Bouteille Butane 12 kg", image: "/images/topenergies/products/butane-cylinder-classic.png" },
+  { label: "Bouteille Butane 6 kg", image: "/images/topenergies/products/butane-cylinder-6kg-white.png" },
+  { label: "Kit gaz complet", image: "/images/topenergies/products/complete-gas-kit.png" },
 ];
 
 function HeroProductShowcase() {
-  return <div className="hero-visual hero-showcase">
-    <div className="hero-blob" />
+  const touchStart = useRef<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [active, setActive] = useState(0);
+
+  const slide = useCallback((direction: 1 | -1) => {
+    setActive((current) => (current + direction + heroSlides.length) % heroSlides.length);
+  }, []);
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = window.setInterval(() => slide(1), 3200);
+    return () => window.clearInterval(timer);
+  }, [paused, slide]);
+
+  const product = heroSlides[active];
+
+  return <div className="hero-visual relative min-h-[560px] overflow-visible [isolation:isolate] max-[950px]:min-h-[455px] max-[560px]:min-h-[372px]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onTouchStart={(event) => { setPaused(true); touchStart.current = event.touches[0].clientX; }} onTouchEnd={(event) => { const start = touchStart.current; const end = event.changedTouches[0].clientX; if (start !== null && Math.abs(start - end) > 42) slide(start > end ? 1 : -1); touchStart.current = null; setPaused(false); }}>
+    <div className="absolute right-0 top-[-22px] aspect-square w-[590px] max-w-full rounded-[52%_48%_49%_51%] bg-[radial-gradient(circle_at_30%_28%,#1d93d0_0%,#116bb0_48%,#074b85_100%)] animate-[pulseRing_6s_ease-in-out_infinite] max-[950px]:right-1/2 max-[950px]:top-0 max-[950px]:w-[560px] max-[950px]:translate-x-1/2 max-[560px]:top-[5px] max-[560px]:w-[450px]" />
     <div className="hero-energy energy-a" /><div className="hero-energy energy-b" /><div className="hero-energy energy-c" />
-    <div className="hero-circle circle-one" />
-    <div className="hero-circle circle-two" />
-    <div className="hero-product-gallery" aria-label="Apercu des familles de produits vendues">
-      {heroShowcaseItems.map((item, index) => <article className={`hero-showcase-item ${item.className}`} key={item.label}>
-        <div><Image src={item.image} alt={item.label} fill sizes={index === 0 ? "(max-width: 950px) 70vw, 360px" : "(max-width: 950px) 30vw, 190px"} className="object-contain" priority={index === 0} /></div>
-        <span>{item.label}</span>
-      </article>)}
+    <div className="absolute right-[50px] top-8 aspect-square w-[490px] rounded-full border border-dashed border-white/20 animate-[orbitSpin_24s_linear_infinite] max-[950px]:right-1/2 max-[950px]:top-8 max-[950px]:w-[390px] max-[950px]:translate-x-1/2 max-[560px]:top-5 max-[560px]:w-[320px]" />
+    <div className="absolute right-[110px] top-[92px] aspect-square w-[370px] rounded-full border border-dashed border-white/20 animate-[orbitSpinReverse_18s_linear_infinite] max-[950px]:right-1/2 max-[950px]:top-[92px] max-[950px]:w-[270px] max-[950px]:translate-x-1/2 max-[560px]:hidden" />
+    <div className="absolute right-[50px] top-8 z-20 grid aspect-square w-[490px] max-w-[calc(100%_-_60px)] place-items-center rounded-full border border-white/10 bg-[radial-gradient(circle,#ffffff17_0%,#ffffff08_56%,transparent_72%)] max-[950px]:right-1/2 max-[950px]:top-7 max-[950px]:w-[405px] max-[950px]:translate-x-1/2 max-[560px]:top-7 max-[560px]:w-[292px]" aria-label="Apercu de produits vendus">
+      <Image key={product.label} className="h-auto max-h-[72%] w-auto max-w-[72%] object-contain drop-shadow-[0_24px_22px_#074c8060] animate-[bottleFloat_5.5s_ease-in-out_.8s_infinite]" src={product.image} alt={product.label} width={520} height={620} priority={active === 0} />
     </div>
-    <div className="floating-card delivery-card"><span><Truck size={18} /></span><div><b>Livraison express</b><small>Chez vous rapidement</small></div></div>
+    <div className="absolute right-[330px] top-[123px] z-30 flex items-center gap-2.5 rounded-[14px] border border-white/25 bg-white/95 p-[13px] shadow-[0_18px_34px_#074c8028] animate-[cardFloat_4.5s_ease-in-out_.4s_infinite] max-[950px]:right-1/2 max-[950px]:top-[103px] max-[950px]:translate-x-[-48px] max-[560px]:hidden"><span className="grid h-[35px] w-[35px] place-items-center rounded-full bg-[#fff1e9] text-[#e51f2b]"><Truck size={18} /></span><div><b className="block text-xs">Livraison express</b><small className="mt-[3px] block text-[10px] text-[#78908b]">Chez vous rapidement</small></div></div>
   </div>;
 }
 
